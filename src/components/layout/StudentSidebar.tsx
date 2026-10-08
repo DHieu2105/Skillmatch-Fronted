@@ -8,7 +8,7 @@ const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: "grid" as const },
   { label: "Find Jobs", href: "/dashboard/jobs", icon: "search" as const },
   { label: "Applications", href: "/dashboard/applications", icon: "briefcase" as const },
-  { label: "Saved Jobs", href: "/dashboard/saved", icon: "building" as const },
+  { label: "Recommendations", href: "/dashboard/recommendations", icon: "search" as const }
 ];
 
 export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void }) {
