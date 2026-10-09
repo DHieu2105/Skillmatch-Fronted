@@ -1,4 +1,4 @@
-"use client";
+import Link from "next/link";
 
 const stats = [
   {
@@ -131,12 +131,12 @@ export default function StudentDashboardPage() {
             </p>
           </div>
 
-          <a
+          <Link
             href="/dashboard/recommendations"
             className="text-sm font-semibold text-violet-600 hover:text-violet-700"
           >
             View all
-          </a>
+          </Link>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-3">
@@ -170,12 +170,12 @@ export default function StudentDashboardPage() {
                 ))}
               </div>
 
-              <a
+              <Link
                 href={`/dashboard/jobs/${job.id}`}
                 className="mt-5 block rounded-xl border border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
               >
                 View details
-              </a>
+              </Link>
             </div>
           ))}
         </div>
@@ -193,12 +193,12 @@ export default function StudentDashboardPage() {
               </p>
             </div>
 
-            <a
+            <Link
               href="/dashboard/applications"
               className="text-sm font-semibold text-violet-600 hover:text-violet-700"
             >
               View all
-            </a>
+            </Link>
           </div>
 
           <div className="divide-y divide-slate-100">
@@ -276,12 +276,12 @@ export default function StudentDashboardPage() {
             </div>
           </div>
 
-          <a
+          <Link
             href="/dashboard/profile"
             className="mt-6 block rounded-xl bg-violet-600 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-700"
           >
             Complete profile
-          </a>
+          </Link>
         </div>
       </section>
     </div>
