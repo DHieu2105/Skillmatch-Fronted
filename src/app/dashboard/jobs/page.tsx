@@ -58,12 +58,28 @@ export default function FindJobsPage() {
       </section>
 
       <section className="grid gap-4">
+        {openJobs.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <p className="font-semibold text-slate-900">
+              No open jobs found
+            </p>
+
+            <p className="mt-2 text-sm text-slate-500">
+              New opportunities will appear here when recruiters post them.
+            </p>
+          </div>
+        )}
+
         {openJobs.map((job) => (
           <div
             key={job.job_id}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           >
             <h2 className="text-lg font-bold text-slate-900">{job.title}</h2>
+
+            <p className="mt-1 text-sm font-medium text-violet-600">
+              {job.company_name}
+            </p>
 
             <p className="mt-2 text-sm text-slate-500">{job.location}</p>
 
