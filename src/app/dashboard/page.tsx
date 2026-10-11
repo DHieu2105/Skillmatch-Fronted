@@ -1,22 +1,10 @@
-import Link from "next/link";
+"use client";
 
-const stats = [
-  {
-    label: "Recommended Jobs",
-    value: "12",
-    description: "Jobs matching your skills",
-  },
-  {
-    label: "Applications",
-    value: "5",
-    description: "Applications submitted",
-  },
-  {
-    label: "Profile Completion",
-    value: "60%",
-    description: "Complete your profile",
-  },
-];
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { applicationService } from "@/services/application.service";
+import type { StudentApplication } from "@/types/application";
 
 const recommendedJobs = [
   {
@@ -45,30 +33,6 @@ const recommendedJobs = [
   },
 ];
 
-const recentApplications = [
-  {
-    id: 1,
-    title: "Backend Developer Intern",
-    company: "Cloudify",
-    status: "REVIEWING",
-    appliedAt: "Oct 08, 2026",
-  },
-  {
-    id: 2,
-    title: "Frontend Developer Intern",
-    company: "TechNova",
-    status: "APPLIED",
-    appliedAt: "Oct 05, 2026",
-  },
-  {
-    id: 3,
-    title: "Software Engineer Intern",
-    company: "DevHub",
-    status: "INTERVIEW",
-    appliedAt: "Oct 01, 2026",
-  },
-];
-
 function getStatusStyle(status: string) {
   switch (status) {
     case "INTERVIEW":
@@ -89,6 +53,55 @@ function getStatusStyle(status: string) {
 }
 
 export default function StudentDashboardPage() {
+  const [applications, setApplications] = useState<StudentApplication[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [applicationsError, setApplicationsError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      Promise.resolve().then(() => {
+        setApplicationsLoading(false);
+      });
+      return;
+    }
+
+    applicationService
+      .getMyApplications(token)
+      .then((data) => {
+        setApplications(data);
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setApplicationsError(error.message);
+        }
+      })
+      .finally(() => {
+        setApplicationsLoading(false);
+      });
+  }, []);
+
+  const recentApplications = applications.slice(0, 3);
+
+  const stats = [
+    {
+      label: "Recommended Jobs",
+      value: "12",
+      description: "Jobs matching your skills",
+    },
+    {
+      label: "Applications",
+      value: applications.length.toString(),
+      description: "Applications submitted",
+    },
+    {
+      label: "Profile Completion",
+      value: "60%",
+      description: "Complete your profile",
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <section>
@@ -201,23 +214,55 @@ export default function StudentDashboardPage() {
             </Link>
           </div>
 
+          {applicationsLoading && (
+            <p className="py-6 text-sm text-slate-500">
+              Loading applications...
+            </p>
+          )}
+
+          {applicationsError && (
+            <p className="py-6 text-sm text-rose-600">{applicationsError}</p>
+          )}
+
+          {!applicationsLoading &&
+            !applicationsError &&
+            recentApplications.length === 0 && (
+              <div className="py-6">
+                <p className="font-semibold text-slate-900">
+                  No applications yet
+                </p>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Your recent applications will appear here.
+                </p>
+              </div>
+            )}
+
           <div className="divide-y divide-slate-100">
-            {recentApplications.map((application) => (
+            {!applicationsLoading &&
+              !applicationsError &&
+              recentApplications.map((application) => (
               <div
-                key={application.id}
+                key={application.application_id}
                 className="flex items-center justify-between gap-4 py-4"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-slate-900">
-                    {application.title}
-                  </p>
+                  <Link
+                    href={`/dashboard/jobs/${application.job_id}`}
+                    className="truncate font-semibold text-slate-900 hover:text-violet-600"
+                  >
+                    {application.job_title}
+                  </Link>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    {application.company}
+                    {application.company_name}
                   </p>
 
                   <p className="mt-1 text-xs text-slate-400">
-                    Applied {application.appliedAt}
+                    Applied{" "}
+                    {new Date(
+                      application.applied_at,
+                    ).toLocaleDateString()}
                   </p>
                 </div>
 

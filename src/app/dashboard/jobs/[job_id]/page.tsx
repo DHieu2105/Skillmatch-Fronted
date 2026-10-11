@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { applicationService } from "@/services/application.service";
+import { cvService } from "@/services/cv.service";
 import { jobService } from "@/services/job.service";
+import type { CV } from "@/types/cv";
 import type { Job } from "@/types/job";
 
 export default function JobDetailPage() {
@@ -13,6 +16,12 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cvs, setCVs] = useState<CV[]>([]);
+  const [selectedCVId, setSelectedCVId] = useState<number | null>(null);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [applying, setApplying] = useState(false);
+  const [applyError, setApplyError] = useState("");
+  const [applySuccess, setApplySuccess] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -48,6 +57,60 @@ export default function JobDetailPage() {
         setLoading(false);
       });
   }, [params.job_id]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) return;
+
+    cvService
+      .getCVs(token)
+      .then((data) => {
+        setCVs(data);
+
+        const defaultCV = data.find((cv) => cv.is_default);
+
+        if (defaultCV) {
+          setSelectedCVId(defaultCV.cv_id);
+        } else if (data.length > 0) {
+          setSelectedCVId(data[0].cv_id);
+        }
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setApplyError(error.message);
+        }
+      });
+  }, []);
+
+  const handleApply = async () => {
+    if (!job || !selectedCVId) return;
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) return;
+
+    setApplying(true);
+    setApplyError("");
+    setApplySuccess("");
+
+    try {
+      await applicationService.apply(token, {
+        job_id: job.job_id,
+        cv_id: selectedCVId,
+        cover_letter: coverLetter,
+      });
+
+      setApplySuccess("Application submitted successfully.");
+      setCoverLetter("");
+    } catch (error) {
+      if (error instanceof Error) {
+        setApplyError(error.message);
+      }
+    } finally {
+      setApplying(false);
+    }
+  };
 
   if (loading) {
     return <p className="text-sm text-slate-500">Loading job details...</p>;
@@ -173,6 +236,76 @@ export default function JobDetailPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-slate-900">
+          Apply for this job
+        </h2>
+
+        <p className="mt-2 text-sm text-slate-500">
+          Choose your CV and add an optional cover letter.
+        </p>
+
+        {cvs.length === 0 ? (
+          <div className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
+            You do not have a CV yet. Upload a CV before applying.
+          </div>
+        ) : (
+          <div className="mt-5 space-y-5">
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                CV
+              </label>
+
+              <select
+                value={selectedCVId ?? ""}
+                onChange={(event) =>
+                  setSelectedCVId(Number(event.target.value))
+                }
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400"
+              >
+                {cvs.map((cv) => (
+                  <option key={cv.cv_id} value={cv.cv_id}>
+                    {cv.file_name}
+                    {cv.is_default ? " (Default)" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Cover Letter
+              </label>
+
+              <textarea
+                value={coverLetter}
+                onChange={(event) => setCoverLetter(event.target.value)}
+                rows={6}
+                placeholder="Tell the recruiter why you are a good fit..."
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400"
+              />
+            </div>
+
+            {applyError && (
+              <p className="text-sm text-rose-600">{applyError}</p>
+            )}
+
+            {applySuccess && (
+              <p className="text-sm text-emerald-600">{applySuccess}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleApply}
+              disabled={applying || !selectedCVId}
+              className="rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {applying ? "Applying..." : "Apply Now"}
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );

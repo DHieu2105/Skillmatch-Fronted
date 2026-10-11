@@ -89,7 +89,7 @@ export default function FindJobsPage() {
     } finally {
       setSearching(false);
     }
-  }; /*  */
+  };
 
   const openJobs = jobs.filter((job) => job.status === "OPEN");
 
