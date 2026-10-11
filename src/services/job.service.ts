@@ -46,4 +46,12 @@ export const jobService = {
       },
     );
   },
+
+  getJobById(token: string, jobId: number) {
+    return apiFetch<Job>(`/api/v1/jobs/${jobId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };

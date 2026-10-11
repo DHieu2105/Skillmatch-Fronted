@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { jobService } from "@/services/job.service";
@@ -66,6 +67,30 @@ export default function FindJobsPage() {
     }
   };
 
+  const handleReset = async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) return;
+
+    setTitle("");
+    setLocation("");
+    setJobType("");
+    setExperienceLevel("");
+    setSearching(true);
+    setError("");
+
+    try {
+      const data = await jobService.getJobs(token);
+      setJobs(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      }
+    } finally {
+      setSearching(false);
+    }
+  }; /*  */
+
   const openJobs = jobs.filter((job) => job.status === "OPEN");
 
   if (loading) {
@@ -119,7 +144,16 @@ export default function FindJobsPage() {
           />
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={searching}
+            className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+          >
+            Reset
+          </button>
+
           <button
             type="button"
             onClick={handleSearch}
@@ -136,9 +170,7 @@ export default function FindJobsPage() {
       <section className="grid gap-4">
         {openJobs.length === 0 && (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-            <p className="font-semibold text-slate-900">
-              No open jobs found
-            </p>
+            <p className="font-semibold text-slate-900">No open jobs found</p>
 
             <p className="mt-2 text-sm text-slate-500">
               New opportunities will appear here when recruiters post them.
@@ -170,6 +202,15 @@ export default function FindJobsPage() {
             </div>
 
             <p className="mt-4 text-sm text-slate-600">{job.salary}</p>
+
+            <div className="mt-5 flex justify-end">
+              <Link
+                href={`/dashboard/jobs/${job.job_id}`}
+                className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+              >
+                View Details
+              </Link>
+            </div>
           </div>
         ))}
       </section>
