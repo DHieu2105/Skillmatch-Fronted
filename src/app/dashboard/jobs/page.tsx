@@ -116,7 +116,7 @@ export default function FindJobsPage() {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="Search job title..."
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-violet-400"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-black outline-none placeholder:text-black transition focus:border-violet-400"
           />
 
           <input
@@ -124,7 +124,7 @@ export default function FindJobsPage() {
             value={location}
             onChange={(event) => setLocation(event.target.value)}
             placeholder="Location"
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-violet-400"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-black outline-none placeholder:text-black transition focus:border-violet-400"
           />
 
           <input
@@ -132,7 +132,7 @@ export default function FindJobsPage() {
             value={jobType}
             onChange={(event) => setJobType(event.target.value)}
             placeholder="Job type"
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-violet-400"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-black outline-none placeholder:text-black transition focus:border-violet-400"
           />
 
           <input
@@ -140,7 +140,7 @@ export default function FindJobsPage() {
             value={experienceLevel}
             onChange={(event) => setExperienceLevel(event.target.value)}
             placeholder="Experience level"
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-violet-400"
+            className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-black outline-none placeholder:text-black transition focus:border-violet-400"
           />
         </div>
 
