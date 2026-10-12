@@ -15,7 +15,7 @@ export default function RecruiterSidebar({ onNavigate }: { onNavigate?: () => vo
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-[260px] shrink-0 flex-col bg-[#17152d] px-5 py-7 text-white">
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col overflow-y-auto bg-[#17152d] px-5 py-7 text-white">
       <Link className="mb-12 flex items-center gap-2 px-2" href="/recruiter/dashboard" onClick={onNavigate}>
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500 text-lg font-black">S</span>
         <span className="text-xl font-bold tracking-tight">Skill<span className="text-violet-400">Match</span></span>

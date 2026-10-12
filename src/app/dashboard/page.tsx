@@ -5,33 +5,8 @@ import { useEffect, useState } from "react";
 
 import { applicationService } from "@/services/application.service";
 import type { StudentApplication } from "@/types/application";
-
-const recommendedJobs = [
-  {
-    id: 1,
-    title: "Frontend Developer Intern",
-    company: "TechNova",
-    location: "Hanoi",
-    skills: ["React", "TypeScript", "Next.js"],
-    matchScore: 92,
-  },
-  {
-    id: 2,
-    title: "Backend Developer Intern",
-    company: "Cloudify",
-    location: "Remote",
-    skills: ["Python", "FastAPI", "PostgreSQL"],
-    matchScore: 86,
-  },
-  {
-    id: 3,
-    title: "Software Engineer Intern",
-    company: "DevHub",
-    location: "Hanoi",
-    skills: ["Java", "SQL", "Git"],
-    matchScore: 79,
-  },
-];
+import { recommendationService } from "@/services/recommendation.service";
+import type { Recommendation } from "@/types/recommendation";
 
 function getStatusStyle(status: string) {
   switch (status) {
@@ -56,6 +31,9 @@ export default function StudentDashboardPage() {
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [applicationsError, setApplicationsError] = useState("");
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+  const [recommendationsError, setRecommendationsError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -82,12 +60,40 @@ export default function StudentDashboardPage() {
       });
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      Promise.resolve().then(() => {
+        setRecommendationsLoading(false);
+      });
+      return;
+    }
+
+    recommendationService
+      .getRecommendations(token)
+      .then((data) => {
+        setRecommendations(data);
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setRecommendationsError(error.message);
+        }
+      })
+      .finally(() => {
+        setRecommendationsLoading(false);
+      });
+  }, []);
+
   const recentApplications = applications.slice(0, 3);
+  const topRecommendations = [...recommendations]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
 
   const stats = [
     {
       label: "Recommended Jobs",
-      value: "12",
+      value: recommendations.length.toString(),
       description: "Jobs matching your skills",
     },
     {
@@ -152,30 +158,68 @@ export default function StudentDashboardPage() {
           </Link>
         </div>
 
+        {recommendationsLoading && (
+          <p className="text-sm text-slate-500">
+            Loading recommendations...
+          </p>
+        )}
+
+        {recommendationsError && (
+          <p className="text-sm text-rose-600">{recommendationsError}</p>
+        )}
+
+        {!recommendationsLoading &&
+          !recommendationsError &&
+          topRecommendations.length === 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <p className="font-semibold text-slate-900">
+                No recommendations yet
+              </p>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Generate recommendations to see jobs matched to your CV and
+                skills.
+              </p>
+
+              <Link
+                href="/dashboard/recommendations"
+                className="mt-4 inline-block text-sm font-semibold text-violet-600 hover:text-violet-700"
+              >
+                Generate recommendations
+              </Link>
+            </div>
+          )}
+
         <div className="grid gap-4 xl:grid-cols-3">
-          {recommendedJobs.map((job) => (
+          {topRecommendations.map((recommendation) => (
             <div
-              key={job.id}
+              key={recommendation.recommendation_id}
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-bold text-slate-900">{job.title}</h3>
+                  <h3 className="font-bold text-slate-900">
+                    {recommendation.job_title}
+                  </h3>
 
-                  <p className="mt-1 text-sm text-slate-500">{job.company}</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {recommendation.company_name}
+                  </p>
                 </div>
 
                 <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
-                  {job.matchScore}% Match
+                  {Math.round(recommendation.score)}% Match
                 </span>
               </div>
 
-              <p className="mt-4 text-sm text-slate-500">{job.location}</p>
+              <p className="mt-4 text-sm text-slate-500">
+                {recommendation.location}
+              </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {job.skills.map((skill) => (
+                {recommendation.matched_skills.slice(0, 3).map((skill, index) => (
                   <span
-                    key={skill}
+                    key={`${skill}-${index}`}
                     className="rounded-lg bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-600"
                   >
                     {skill}
@@ -184,7 +228,7 @@ export default function StudentDashboardPage() {
               </div>
 
               <Link
-                href={`/dashboard/jobs/${job.id}`}
+                href={`/dashboard/jobs/${recommendation.job_id}`}
                 className="mt-5 block rounded-xl border border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600"
               >
                 View details
