@@ -7,6 +7,8 @@ import { applicationService } from "@/services/application.service";
 import type { StudentApplication } from "@/types/application";
 import { recommendationService } from "@/services/recommendation.service";
 import type { Recommendation } from "@/types/recommendation";
+import { studentService } from "@/services/student.service";
+import type { ProfileCompletion } from "@/types/student";
 
 function getStatusStyle(status: string) {
   switch (status) {
@@ -34,6 +36,8 @@ export default function StudentDashboardPage() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
   const [recommendationsError, setRecommendationsError] = useState("");
+  const [profileCompletion, setProfileCompletion] =
+    useState<ProfileCompletion | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -57,6 +61,21 @@ export default function StudentDashboardPage() {
       })
       .finally(() => {
         setApplicationsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) return;
+
+    studentService
+      .getProfileCompletion(token)
+      .then((data) => {
+        setProfileCompletion(data);
+      })
+      .catch(() => {
+        setProfileCompletion(null);
       });
   }, []);
 
@@ -90,6 +109,20 @@ export default function StudentDashboardPage() {
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
 
+    const skillGapCounts = recommendations
+  .flatMap((recommendation) => recommendation.missing_skills)
+  .reduce<Record<string, number>>((acc, skill) => {
+    acc[skill] = (acc[skill] || 0) + 1;
+    return acc;
+  }, {});
+
+const skillGaps = Object.entries(skillGapCounts)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 5)
+  .map(([skill]) => skill);
+
+  const completionPercentage = profileCompletion?.percentage ?? 0;
+
   const stats = [
     {
       label: "Recommended Jobs",
@@ -103,7 +136,7 @@ export default function StudentDashboardPage() {
     },
     {
       label: "Profile Completion",
-      value: "60%",
+      value: `${completionPercentage}%`,
       description: "Complete your profile",
     },
   ];
@@ -338,12 +371,34 @@ export default function StudentDashboardPage() {
                 Profile completion
               </span>
 
-              <span className="text-sm font-bold text-violet-600">60%</span>
+              <span className="text-sm font-bold text-violet-600">
+                {completionPercentage}%
+              </span>
             </div>
 
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full w-[60%] rounded-full bg-violet-600" />
+              <div
+                className="h-full rounded-full bg-violet-600 transition-all"
+                style={{ width: `${completionPercentage}%` }}
+              />
             </div>
+
+            {profileCompletion && (
+              <div className="mt-4 space-y-2 text-xs text-slate-500">
+                <p>
+                  Profile information:{" "}
+                  {profileCompletion.profile_fields_completed}/
+                  {profileCompletion.profile_fields_total}
+                </p>
+                <p>
+                  CV: {profileCompletion.has_cv ? "Completed" : "Missing"}
+                </p>
+                <p>
+                  Skills:{" "}
+                  {profileCompletion.has_skills ? "Completed" : "Missing"}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="mt-7 border-t border-slate-100 pt-6">
@@ -354,14 +409,24 @@ export default function StudentDashboardPage() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {["Docker", "AWS", "Redis"].map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-600"
-                >
-                  + {skill}
-                </span>
-              ))}
+              {recommendationsLoading ? (
+                <p className="text-sm text-slate-400">
+                  Loading skill gaps...
+                </p>
+              ) : skillGaps.length > 0 ? (
+                skillGaps.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-600"
+                  >
+                    + {skill}
+                  </span>
+                ))
+              ) : (
+                <p className="text-sm text-slate-400">
+                  No skill gaps found.
+                </p>
+              )}
             </div>
           </div>
 

@@ -8,7 +8,8 @@ const navigation = [
   { label: "Dashboard", href: "/dashboard", icon: "grid" as const },
   { label: "Find Jobs", href: "/dashboard/jobs", icon: "search" as const },
   { label: "Applications", href: "/dashboard/applications", icon: "briefcase" as const },
-  { label: "Recommendations", href: "/dashboard/recommendations", icon: "search" as const }
+  { label: "Recommendations", href: "/dashboard/recommendations", icon: "search" as const },
+  { label: "My CV", href: "/dashboard/cv", icon: "profile" as const },
 ];
 
 export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void }) {
