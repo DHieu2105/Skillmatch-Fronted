@@ -3,18 +3,15 @@
 import { useEffect, useState } from "react";
 
 import { skillService } from "@/services/skill.service";
-import {
-  skillOptions,
-  type StudentSkill,
-  type StudentSkillForm,
-} from "@/types/skill";
+import type { Skill, SkillCreate, StudentSkill } from "@/types/skill";
 
 const levels = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
 
 export default function SkillsPage() {
+  const [catalog, setCatalog] = useState<Skill[]>([]);
   const [skills, setSkills] = useState<StudentSkill[]>([]);
-  const [form, setForm] = useState<StudentSkillForm>({
-    skill_id: skillOptions[0].skill_id,
+  const [form, setForm] = useState<SkillCreate>({
+    skill_id: 0,
     level: "BEGINNER",
     source: "MANUAL",
   });
@@ -34,10 +31,13 @@ export default function SkillsPage() {
       return;
     }
 
-    skillService
-      .getStudentSkills(token)
-      .then((data) => {
-        setSkills(data);
+    Promise.all([
+      skillService.getCatalog(token),
+      skillService.getMySkills(token),
+    ])
+      .then(([catalogData, skillsData]) => {
+        setCatalog(catalogData);
+        setSkills(skillsData);
       })
       .catch((error) => {
         if (error instanceof Error) {
@@ -52,7 +52,7 @@ export default function SkillsPage() {
   const resetForm = () => {
     setEditingSkillId(null);
     setForm({
-      skill_id: skillOptions[0].skill_id,
+      skill_id: catalog[0]?.skill_id ?? 0,
       level: "BEGINNER",
       source: "MANUAL",
     });
@@ -72,14 +72,14 @@ export default function SkillsPage() {
 
     try {
       if (editingSkillId === null) {
-        const addedSkill = await skillService.addStudentSkill(token, form);
+        const addedSkill = await skillService.addSkill(token, form);
         setSkills((currentSkills) => [...currentSkills, addedSkill]);
         setSuccess("Skill added successfully.");
       } else {
-        const updatedSkill = await skillService.updateStudentSkill(
+        const updatedSkill = await skillService.updateSkill(
           token,
           editingSkillId,
-          form,
+          { level: form.level, source: form.source },
         );
         setSkills((currentSkills) =>
           currentSkills.map((skill) =>
@@ -122,7 +122,7 @@ export default function SkillsPage() {
     setSuccess("");
 
     try {
-      await skillService.deleteStudentSkill(token, skillId);
+      await skillService.deleteSkill(token, skillId);
       setSkills((currentSkills) =>
         currentSkills.filter((skill) => skill.skill_id !== skillId),
       );
@@ -136,6 +136,11 @@ export default function SkillsPage() {
       }
     }
   };
+
+  const availableSkills = catalog.filter(
+    (option) =>
+      !skills.some((skill) => skill.skill_id === option.skill_id),
+  );
 
   if (loading) {
     return <p className="text-sm text-slate-500">Loading skills...</p>;
@@ -165,7 +170,8 @@ export default function SkillsPage() {
             }
             className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 disabled:bg-slate-50"
           >
-            {skillOptions.map((option) => (
+            <option value={0}>Select a skill</option>
+            {availableSkills.map((option) => (
               <option key={option.skill_id} value={option.skill_id}>
                 {option.skill_name}
               </option>

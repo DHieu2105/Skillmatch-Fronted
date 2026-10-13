@@ -3,13 +3,22 @@ import { apiFetch } from "@/lib/api";
 import type {
   SkillCreate,
   SkillUpdate,
+  Skill,
   StudentSkill,
 } from "@/types/skill";
 
-const endpoint = "/api/v1/skills/skills";
+const endpoint = "/api/v1/skills";
 
 export const skillService = {
-  getStudentSkills(token: string) {
+  getCatalog(token: string) {
+    return apiFetch<Skill[]>(`${endpoint}/catalog`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  getMySkills(token: string) {
     return apiFetch<StudentSkill[]>(endpoint, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -17,7 +26,7 @@ export const skillService = {
     });
   },
 
-  addStudentSkill(token: string, data: SkillCreate) {
+  addSkill(token: string, data: SkillCreate) {
     return apiFetch<StudentSkill>(endpoint, {
       method: "POST",
       headers: {
@@ -27,11 +36,7 @@ export const skillService = {
     });
   },
 
-  updateStudentSkill(
-    token: string,
-    skillId: number,
-    data: SkillUpdate,
-  ) {
+  updateSkill(token: string, skillId: number, data: SkillUpdate) {
     return apiFetch<StudentSkill>(`${endpoint}/${skillId}`, {
       method: "PUT",
       headers: {
@@ -41,28 +46,12 @@ export const skillService = {
     });
   },
 
-  deleteStudentSkill(token: string, skillId: number) {
+  deleteSkill(token: string, skillId: number) {
     return apiFetch<StudentSkill>(`${endpoint}/${skillId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-  },
-
-  getMySkills(token: string) {
-    return this.getStudentSkills(token);
-  },
-
-  addSkill(token: string, data: SkillCreate) {
-    return this.addStudentSkill(token, data);
-  },
-
-  updateSkill(token: string, skillId: number, data: SkillUpdate) {
-    return this.updateStudentSkill(token, skillId, data);
-  },
-
-  deleteSkill(token: string, skillId: number) {
-    return this.deleteStudentSkill(token, skillId);
   },
 };
