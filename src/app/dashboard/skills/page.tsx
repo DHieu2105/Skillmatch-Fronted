@@ -52,7 +52,7 @@ export default function SkillsPage() {
   const resetForm = () => {
     setEditingSkillId(null);
     setForm({
-      skill_id: catalog[0]?.skill_id ?? 0,
+      skill_id: 0,
       level: "BEGINNER",
       source: "MANUAL",
     });
@@ -162,21 +162,29 @@ export default function SkillsPage() {
         </h2>
 
         <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_auto]">
-          <select
-            value={form.skill_id}
-            disabled={editingSkillId !== null}
-            onChange={(event) =>
-              setForm({ ...form, skill_id: Number(event.target.value) })
-            }
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 disabled:bg-slate-50"
-          >
-            <option value={0}>Select a skill</option>
-            {availableSkills.map((option) => (
-              <option key={option.skill_id} value={option.skill_id}>
-                {option.skill_name}
-              </option>
-            ))}
-          </select>
+          {editingSkillId !== null ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              {
+                skills.find((skill) => skill.skill_id === editingSkillId)
+                  ?.skill_name
+              }
+            </div>
+          ) : (
+            <select
+              value={form.skill_id}
+              onChange={(event) =>
+                setForm({ ...form, skill_id: Number(event.target.value) })
+              }
+              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400"
+            >
+              <option value={0}>Select a skill</option>
+              {availableSkills.map((option) => (
+                <option key={option.skill_id} value={option.skill_id}>
+                  {option.skill_name}
+                </option>
+              ))}
+            </select>
+          )}
 
           <select
             value={form.level}
@@ -196,7 +204,7 @@ export default function SkillsPage() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || form.skill_id === 0}
               className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving
