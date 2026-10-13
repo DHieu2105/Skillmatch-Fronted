@@ -17,7 +17,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       <div className="flex min-w-0 w-full flex-1 flex-col lg:pl-[260px]">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="min-w-0 flex-1 overflow-x-hidden p-5 sm:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-hidden p-5 sm:p-8">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+        </main>
       </div>
     </div>
     </RoleGuard>

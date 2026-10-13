@@ -10,6 +10,7 @@ const navigation = [
   { label: "Applications", href: "/dashboard/applications", icon: "briefcase" as const },
   { label: "Recommendations", href: "/dashboard/recommendations", icon: "search" as const },
   { label: "My CV", href: "/dashboard/cv", icon: "profile" as const },
+  { label: "My Skills", href: "/dashboard/skills", icon: "profile" as const },
 ];
 
 export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -24,7 +25,9 @@ export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void
       <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Workspace</p>
       <nav className="space-y-1">
         {navigation.map((item) => {
-          const active = pathname === item.href;
+          const active =
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
           return (
             <Link className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-violet-600 text-white shadow-lg shadow-violet-950/30" : "text-slate-400 hover:bg-white/5 hover:text-white"}`} href={item.href} key={item.href} onClick={onNavigate}>
               <Icon name={item.icon} size={19} />
@@ -40,12 +43,6 @@ export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void
         <Link className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white" href="/dashboard/settings" onClick={onNavigate}>
           <Icon name="settings" size={19} /> Settings
         </Link>
-        <div className="mt-5 rounded-2xl bg-violet-500/10 p-4">
-          <p className="text-sm font-semibold text-violet-200">Complete your profile</p>
-          <p className="mt-1 text-xs leading-5 text-slate-400">Stand out to recruiters and find your perfect match.</p>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-700"><div className="h-full w-3/5 rounded-full bg-violet-400" /></div>
-          <p className="mt-2 text-right text-[11px] font-medium text-violet-300">60% complete</p>
-        </div>
       </div>
     </aside>
   );

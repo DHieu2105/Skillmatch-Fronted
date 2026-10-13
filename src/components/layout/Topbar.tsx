@@ -66,7 +66,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   }
 
   return (
-    <header className="flex h-[76px] items-center justify-between border-b border-slate-200 bg-white px-5 sm:px-8">
+    <header className="flex h-[76px] items-center justify-between border-b border-slate-200/80 bg-white px-5 sm:px-8">
       <div className="flex items-center gap-4">
         <button
           aria-label="Open navigation"
@@ -76,7 +76,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         >
           <Icon name="menu" />
         </button>
-        <div className="hidden w-72 items-center gap-3 rounded-xl bg-slate-50 px-4 py-2.5 text-sm text-slate-400 sm:flex">
+        <div className="hidden w-80 items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-sm text-slate-400 sm:flex">
           <Icon name="search" size={18} />
           <span>Search anything...</span>
         </div>
