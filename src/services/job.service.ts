@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api";
-import type { Job, JobCreate } from "@/types/job";
+import type { Job, JobCreate, JobUpdate, JobStatus } from "@/types/job";
 
 export const jobService = {
   getJobs(token: string) {
@@ -62,6 +62,28 @@ export const jobService = {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
+    });
+  },
+
+  updateJob(token: string, jobId: number, data: JobUpdate) {
+    return apiFetch<Job>(`/api/v1/jobs/${jobId}`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateJobStatus(token: string, jobId: number, status: JobStatus) {
+    return apiFetch<Job>(`/api/v1/jobs/${jobId}/status?status=${status}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  deleteJob(token: string, jobId: number) {
+    return apiFetch<{ message: string }>(`/api/v1/jobs/${jobId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     });
   },
 };
