@@ -16,3 +16,14 @@ export interface Job {
   created_at: string;
   update_at: string;
 }
+export interface JobCreate {
+  company_id: number;
+  title: string;
+  description: string;
+  location: string;
+  salary: string;
+  job_type: string;
+  experience_level: string;
+  deadline: string;
+  status: JobStatus;
+}

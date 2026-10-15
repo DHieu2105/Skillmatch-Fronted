@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api";
-import type { Job } from "@/types/job";
+import type { Job, JobCreate } from "@/types/job";
 
 export const jobService = {
   getJobs(token: string) {
@@ -52,6 +52,16 @@ export const jobService = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+    });
+  },
+
+  createJob(token: string, data: JobCreate) {
+    return apiFetch<Job>("/api/v1/jobs", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     });
   },
 };
