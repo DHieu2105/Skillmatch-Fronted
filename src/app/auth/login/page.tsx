@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -167,7 +168,7 @@ export default function LoginPage() {
             <span className="text-base font-bold text-[#4285f4]">G</span>
             Continue with Google
           </button>
-          <p className="mt-8 text-center text-sm text-slate-500">Don&apos;t have an account? <button className="font-semibold text-violet-600 hover:text-violet-700" type="button">Create an account</button></p>
+          <p className="mt-8 text-center text-sm text-slate-500">Don&apos;t have an account? <Link className="font-semibold text-violet-600 hover:text-violet-700" href="/auth/register">Create an account</Link></p>
         </div>
       </section>
     </main>
