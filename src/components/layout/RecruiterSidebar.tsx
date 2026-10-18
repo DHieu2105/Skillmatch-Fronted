@@ -39,11 +39,6 @@ export default function RecruiterSidebar({ onNavigate }: { onNavigate?: () => vo
         <Link className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white" href="/recruiter/settings" onClick={onNavigate}>
           <Icon name="settings" size={19} /> Settings
         </Link>
-        <div className="mt-5 rounded-2xl bg-violet-500/10 p-4">
-          <p className="text-sm font-semibold text-violet-200">Need a hand?</p>
-          <p className="mt-1 text-xs leading-5 text-slate-400">Our support team is here to help you hire better.</p>
-          <Link className="mt-3 inline-block text-xs font-semibold text-violet-300 hover:text-violet-200" href="/recruiter/support">Contact support →</Link>
-        </div>
       </div>
     </aside>
   );

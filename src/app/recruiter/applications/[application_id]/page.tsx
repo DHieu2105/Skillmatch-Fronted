@@ -305,14 +305,12 @@ export default function RecruiterApplicationDetailPage() {
               {application.cv_file_name}
             </p>
 
-            <a
-              href={application.cv_file_url}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              href={`/recruiter/applications/${application.application_id}/cv`}
               className="mt-5 block rounded-xl bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white"
             >
               View CV
-            </a>
+            </Link>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

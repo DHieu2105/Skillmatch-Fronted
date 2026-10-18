@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type ChangeEvent, useEffect, useState } from "react";
 
 import { cvService } from "@/services/cv.service";
@@ -257,14 +258,12 @@ export default function CVPage() {
                       )}
                     </div>
 
-                    <a
-                      href={cv.file_url}
-                      target="_blank"
-                      rel="noreferrer"
+                    <Link
+                      href={`/dashboard/cv/${cv.cv_id}`}
                       className="mt-2 inline-block text-sm font-semibold text-violet-600 hover:text-violet-700"
                     >
                       View CV
-                    </a>
+                    </Link>
                   </div>
 
                   <div className="flex flex-wrap gap-2">

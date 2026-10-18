@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 
+import SkillPicker from "@/components/skills/SkillPicker";
 import { skillService } from "@/services/skill.service";
-import type { Skill, SkillCreate, StudentSkill } from "@/types/skill";
+import type {
+  Skill,
+  SkillCatalogCreate,
+  SkillCreate,
+  StudentSkill,
+} from "@/types/skill";
 
 const levels = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
 
@@ -99,6 +105,22 @@ export default function SkillsPage() {
     }
   };
 
+  const handleCreateCatalogSkill = async (data: SkillCatalogCreate) => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      throw new Error("You must be signed in to create a skill.");
+    }
+
+    const skill = await skillService.createCatalogSkill(token, data);
+    setCatalog((current) =>
+      [...current.filter((item) => item.skill_id !== skill.skill_id), skill].sort(
+        (left, right) => left.skill_name.localeCompare(right.skill_name),
+      ),
+    );
+    return skill;
+  };
+
   const handleEdit = (skill: StudentSkill) => {
     setEditingSkillId(skill.skill_id);
     setForm({
@@ -137,11 +159,6 @@ export default function SkillsPage() {
     }
   };
 
-  const availableSkills = catalog.filter(
-    (option) =>
-      !skills.some((skill) => skill.skill_id === option.skill_id),
-  );
-
   if (loading) {
     return <p className="text-sm text-slate-500">Loading skills...</p>;
   }
@@ -170,20 +187,16 @@ export default function SkillsPage() {
               }
             </div>
           ) : (
-            <select
+            <SkillPicker
+              key={`student-skill-${form.skill_id}`}
+              catalog={catalog}
+              excludedSkillIds={skills.map((skill) => skill.skill_id)}
               value={form.skill_id}
-              onChange={(event) =>
-                setForm({ ...form, skill_id: Number(event.target.value) })
+              onChange={(skillId) =>
+                setForm((current) => ({ ...current, skill_id: skillId }))
               }
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400"
-            >
-              <option value={0}>Select a skill</option>
-              {availableSkills.map((option) => (
-                <option key={option.skill_id} value={option.skill_id}>
-                  {option.skill_name}
-                </option>
-              ))}
-            </select>
+              onCreate={handleCreateCatalogSkill}
+            />
           )}
 
           <select
@@ -244,7 +257,7 @@ export default function SkillsPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <p className="font-semibold text-slate-900">No skills added yet</p>
             <p className="mt-2 text-sm text-slate-500">
-              Add at least one skill to improve your profile completion.
+              Add skills to improve your recommendations.
             </p>
           </div>
         ) : (

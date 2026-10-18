@@ -2,6 +2,7 @@ import { apiFetch } from "@/lib/api";
 
 import type {
   SkillCreate,
+  SkillCatalogCreate,
   SkillUpdate,
   Skill,
   StudentSkill,
@@ -15,6 +16,16 @@ export const skillService = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+    });
+  },
+
+  createCatalogSkill(token: string, data: SkillCatalogCreate) {
+    return apiFetch<Skill>(`${endpoint}/catalog`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     });
   },
 

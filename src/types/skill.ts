@@ -5,6 +5,11 @@ export interface Skill {
   description: string;
 }
 
+export interface SkillCatalogCreate {
+  skill_name: string;
+  category: string;
+}
+
 export interface StudentSkill extends Skill {
   level: string;
   source: string;

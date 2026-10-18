@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+import SkillPicker from "@/components/skills/SkillPicker";
 import { jobService } from "@/services/job.service";
 import { jobSkillService } from "@/services/job-skill.service";
 import { recruiterService } from "@/services/recruiter.service";
@@ -11,7 +12,7 @@ import { skillService } from "@/services/skill.service";
 
 import type { JobUpdate } from "@/types/job";
 import type { JobSkillCreate } from "@/types/job-skill";
-import type { Skill } from "@/types/skill";
+import type { Skill, SkillCatalogCreate } from "@/types/skill";
 
 const initialForm: JobUpdate = {
   title: "",
@@ -147,6 +148,22 @@ export default function EditJobPage() {
         (skill) => skill.skill_id !== skillId,
       ),
     );
+  };
+
+  const handleCreateCatalogSkill = async (data: SkillCatalogCreate) => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      throw new Error("You must be signed in to create a skill.");
+    }
+
+    const skill = await skillService.createCatalogSkill(token, data);
+    setCatalog((current) =>
+      [...current.filter((item) => item.skill_id !== skill.skill_id), skill].sort(
+        (left, right) => left.skill_name.localeCompare(right.skill_name),
+      ),
+    );
+    return skill;
   };
 
   const handleSkillChange = (
@@ -509,83 +526,81 @@ export default function EditJobPage() {
           Add, remove or update skill requirements.
         </p>
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_200px_200px_auto]">
-          <select
-            value={skillForm.skill_id}
-            onChange={(event) =>
-              setSkillForm({
-                ...skillForm,
-                skill_id: Number(
-                  event.target.value,
-                ),
-              })
-            }
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm"
-          >
-            <option value={0}>
-              Select skill
-            </option>
+        <div className="mt-5 grid items-end gap-3 lg:grid-cols-[minmax(0,1fr)_200px_200px_auto]">
+          <div className="grid gap-2 text-sm font-semibold text-slate-700">
+            <span>Skill</span>
+            <SkillPicker
+              key={`edit-job-skill-${skillForm.skill_id}`}
+              accent="amber"
+              catalog={catalog}
+              excludedSkillIds={jobSkills.map((skill) => skill.skill_id)}
+              value={skillForm.skill_id}
+              onChange={(skillId) =>
+                setSkillForm((current) => ({
+                  ...current,
+                  skill_id: skillId,
+                }))
+              }
+              onCreate={handleCreateCatalogSkill}
+            />
+          </div>
 
-            {availableSkills.map((skill) => (
-              <option
-                key={skill.skill_id}
-                value={skill.skill_id}
-              >
-                {skill.skill_name}
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
+            Requirement
+            <select
+              value={skillForm.requirement_type}
+              onChange={(event) =>
+                setSkillForm({
+                  ...skillForm,
+                  requirement_type:
+                    event.target.value,
+                })
+              }
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal"
+            >
+              <option value="REQUIRED">
+                Required
               </option>
-            ))}
-          </select>
 
-          <select
-            value={skillForm.requirement_type}
-            onChange={(event) =>
-              setSkillForm({
-                ...skillForm,
-                requirement_type:
-                  event.target.value,
-              })
-            }
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm"
-          >
-            <option value="REQUIRED">
-              Required
-            </option>
+              <option value="PREFERRED">
+                Preferred
+              </option>
+            </select>
+          </label>
 
-            <option value="PREFERRED">
-              Preferred
-            </option>
-          </select>
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">
+            Minimum level
+            <select
+              value={skillForm.level}
+              onChange={(event) =>
+                setSkillForm({
+                  ...skillForm,
+                  level: event.target.value,
+                })
+              }
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal"
+            >
+              <option value="BEGINNER">
+                Beginner
+              </option>
 
-          <select
-            value={skillForm.level}
-            onChange={(event) =>
-              setSkillForm({
-                ...skillForm,
-                level: event.target.value,
-              })
-            }
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm"
-          >
-            <option value="BEGINNER">
-              Beginner
-            </option>
+              <option value="INTERMEDIATE">
+                Intermediate
+              </option>
 
-            <option value="INTERMEDIATE">
-              Intermediate
-            </option>
-
-            <option value="ADVANCED">
-              Advanced
-            </option>
-          </select>
+              <option value="ADVANCED">
+                Advanced
+              </option>
+            </select>
+          </label>
 
           <button
             type="button"
             onClick={handleAddSkill}
             disabled={skillForm.skill_id === 0}
-            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Add
+            Add skill
           </button>
         </div>
 

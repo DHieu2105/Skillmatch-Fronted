@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notification-events";
+import { notificationService } from "@/services/notification.service";
 
 type IconName =
   | "bell"
@@ -58,7 +61,70 @@ export function Icon({
 export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter();
   const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
   const initials = user?.email?.slice(0, 1).toUpperCase() ?? "U";
+
+  useEffect(() => {
+    if (user?.role !== "STUDENT") return;
+
+    let active = true;
+
+    const loadUnreadCount = async () => {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        if (active) setUnreadCount(0);
+        return;
+      }
+
+      try {
+        const notifications = await notificationService.getNotifications(token);
+        if (active) {
+          setUnreadCount(
+            notifications.filter((notification) => !notification.is_read)
+              .length,
+          );
+        }
+      } catch {
+        if (active) setUnreadCount(0);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void loadUnreadCount();
+      }
+    };
+
+    void loadUnreadCount();
+    const refreshInterval = window.setInterval(
+      loadUnreadCount,
+      60_000,
+    );
+    window.addEventListener(
+      NOTIFICATIONS_UPDATED_EVENT,
+      loadUnreadCount,
+    );
+    window.addEventListener("focus", loadUnreadCount);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
+
+    return () => {
+      active = false;
+      window.clearInterval(refreshInterval);
+      window.removeEventListener(
+        NOTIFICATIONS_UPDATED_EVENT,
+        loadUnreadCount,
+      );
+      window.removeEventListener("focus", loadUnreadCount);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
+    };
+  }, [user?.role]);
 
   function handleLogout() {
     localStorage.removeItem("access_token");
@@ -86,10 +152,25 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         <button aria-label="Help" className="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100 sm:block" type="button">
           <Icon name="help" size={19} />
         </button>
-        <button aria-label="Notifications" className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100" type="button">
-          <Icon name="bell" size={19} />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-violet-600 ring-2 ring-white" />
-        </button>
+        {user?.role === "STUDENT" && (
+          <button
+            aria-label={
+              unreadCount > 0
+                ? `${unreadCount} unread notifications`
+                : "Notifications"
+            }
+            className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            onClick={() => router.push("/dashboard/notifications")}
+            type="button"
+          >
+            <Icon name="bell" size={19} />
+            {unreadCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+        )}
         <div className="h-8 w-px bg-slate-200" />
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700">
