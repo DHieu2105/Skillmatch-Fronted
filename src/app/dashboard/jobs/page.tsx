@@ -91,7 +91,21 @@ export default function FindJobsPage() {
     }
   };
 
-  const openJobs = jobs.filter((job) => job.status === "OPEN");
+  const openJobs = jobs.filter((job) => {
+    if (job.status !== "OPEN") {
+      return false;
+    }
+
+    const [year, month, day] = job.deadline
+      .slice(0, 10)
+      .split("-")
+      .map(Number);
+    const deadline = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return deadline >= today;
+  });
 
   if (loading) {
     return <p className="text-sm text-slate-500">Loading jobs...</p>;
