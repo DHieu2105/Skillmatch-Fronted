@@ -10,6 +10,22 @@ import { jobService } from "@/services/job.service";
 import type { CV } from "@/types/cv";
 import type { Job } from "@/types/job";
 
+function isJobAcceptingApplications(job: Job): boolean {
+  const [year, month, day] = job.deadline
+    .slice(0, 10)
+    .split("-")
+    .map(Number);
+  const deadline = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return (
+    job.status.trim().toUpperCase() === "OPEN" &&
+    !Number.isNaN(deadline.getTime()) &&
+    deadline >= today
+  );
+}
+
 export default function JobDetailPage() {
   const params = useParams<{ job_id: string }>();
 
@@ -59,6 +75,8 @@ export default function JobDetailPage() {
   }, [params.job_id]);
 
   useEffect(() => {
+    if (!job || !isJobAcceptingApplications(job)) return;
+
     const token = localStorage.getItem("access_token");
 
     if (!token) return;
@@ -81,10 +99,14 @@ export default function JobDetailPage() {
           setApplyError(error.message);
         }
       });
-  }, []);
+  }, [job]);
 
   const handleApply = async () => {
-    if (!job || !selectedCVId) return;
+    if (
+      !job ||
+      !selectedCVId ||
+      !isJobAcceptingApplications(job)
+    ) return;
 
     const token = localStorage.getItem("access_token");
 
@@ -134,6 +156,8 @@ export default function JobDetailPage() {
   if (!job) {
     return <p className="text-sm text-slate-500">Job not found.</p>;
   }
+
+  const acceptingApplications = isJobAcceptingApplications(job);
 
   return (
     <div className="space-y-6">
@@ -239,20 +263,26 @@ export default function JobDetailPage() {
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-slate-900">
-          Apply for this job
-        </h2>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Choose your CV and add an optional cover letter.
-        </p>
-
-        {cvs.length === 0 ? (
-          <div className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
-            You do not have a CV yet. Upload a CV before applying.
-          </div>
+        {!acceptingApplications ? (
+          <p className="rounded-xl bg-amber-50 p-4 text-sm font-medium text-amber-700">
+            This job is no longer accepting applications.
+          </p>
         ) : (
-          <div className="mt-5 space-y-5">
+          <>
+            <h2 className="text-xl font-bold text-slate-900">
+              Apply for this job
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Choose your CV and add an optional cover letter.
+            </p>
+
+            {cvs.length === 0 ? (
+              <div className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
+                You do not have a CV yet. Upload a CV before applying.
+              </div>
+            ) : (
+              <div className="mt-5 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
                 CV
@@ -304,7 +334,9 @@ export default function JobDetailPage() {
             >
               {applying ? "Applying..." : "Apply Now"}
             </button>
-          </div>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

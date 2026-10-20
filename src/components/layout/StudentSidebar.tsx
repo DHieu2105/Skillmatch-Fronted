@@ -40,9 +40,6 @@ export default function StudentSidebar({ onNavigate }: { onNavigate?: () => void
         <Link className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white" href="/dashboard/profile" onClick={onNavigate}>
           <Icon name="profile" size={19} /> My Profile
         </Link>
-        <Link className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white" href="/dashboard/settings" onClick={onNavigate}>
-          <Icon name="settings" size={19} /> Settings
-        </Link>
       </div>
     </aside>
   );

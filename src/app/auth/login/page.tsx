@@ -45,7 +45,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (
@@ -137,9 +136,8 @@ export default function LoginPage() {
               </div>
             </div>
             <div>
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2">
                 <label className="text-sm font-semibold text-slate-700" htmlFor="password">Password</label>
-                <button className="text-xs font-semibold text-violet-600 hover:text-violet-700" type="button">Forgot password?</button>
               </div>
               <div className="group flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 transition focus-within:border-violet-500 focus-within:ring-4 focus-within:ring-violet-500/10">
                 <span className="text-slate-400 group-focus-within:text-violet-500"><LockIcon /></span>
@@ -147,11 +145,6 @@ export default function LoginPage() {
                 <button aria-label={showPassword ? "Hide password" : "Show password"} className="text-slate-400 hover:text-slate-600" onClick={() => setShowPassword((visible) => !visible)} type="button"><EyeIcon hidden={!showPassword} /></button>
               </div>
             </div>
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-500">
-              <input checked={rememberMe} className="h-4 w-4 rounded border-slate-300 accent-violet-600" onChange={(event) => setRememberMe(event.target.checked)} type="checkbox" />
-              Remember me
-            </label>
-
             {error && <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600" role="alert">{error}</p>}
 
             <button className="flex h-12 w-full items-center justify-center rounded-xl bg-violet-600 text-sm font-semibold text-white shadow-lg shadow-violet-600/20 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
@@ -159,15 +152,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="my-8 flex items-center gap-4">
-            <div className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs text-slate-400">OR</span>
-            <div className="h-px flex-1 bg-slate-200" />
-          </div>
-          <button className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50" type="button">
-            <span className="text-base font-bold text-[#4285f4]">G</span>
-            Continue with Google
-          </button>
           <p className="mt-8 text-center text-sm text-slate-500">Don&apos;t have an account? <Link className="font-semibold text-violet-600 hover:text-violet-700" href="/auth/register">Create an account</Link></p>
         </div>
       </section>
