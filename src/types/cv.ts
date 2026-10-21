@@ -5,4 +5,5 @@ export interface CV {
   file_url: string;
   parsed_text: string;
   is_default: boolean;
+  is_archived: boolean;
 }

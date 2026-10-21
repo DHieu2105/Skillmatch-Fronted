@@ -68,7 +68,7 @@ export default function CVPage() {
     setError("");
     setSuccess("");
 
-    if (file.type !== "application/pdf") {
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
       setSelectedFile(null);
       setError("Only PDF files are supported.");
       return;
@@ -125,7 +125,7 @@ export default function CVPage() {
 
     try {
       await cvService.setDefaultCV(token, cvId);
-      setSuccess("Default CV updated.");
+      setSuccess("Default CV updated. The previous default CV was archived.");
       await loadCVs();
     } catch (error) {
       if (error instanceof Error) {
@@ -147,7 +147,7 @@ export default function CVPage() {
 
     try {
       await cvService.deleteCV(token, cvId);
-      setSuccess("CV deleted successfully.");
+      setSuccess("CV removed from your list.");
       await loadCVs();
     } catch (error) {
       if (error instanceof Error) {
@@ -227,7 +227,8 @@ export default function CVPage() {
           <h2 className="text-xl font-bold text-slate-900">Your CVs</h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            The default CV is used when generating job recommendations.
+            The default CV is used for recommendations. Previous default CVs
+            are archived when you choose a new one.
           </p>
         </div>
 
@@ -282,7 +283,7 @@ export default function CVPage() {
                       onClick={() => handleDelete(cv.cv_id)}
                       className="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50"
                     >
-                      Delete
+                      Remove
                     </button>
                   </div>
                 </div>
