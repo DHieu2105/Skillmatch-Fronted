@@ -125,7 +125,7 @@ export default function CVPage() {
 
     try {
       await cvService.setDefaultCV(token, cvId);
-      setSuccess("Default CV updated. The previous default CV was archived.");
+      setSuccess("Default CV updated.");
       await loadCVs();
     } catch (error) {
       if (error instanceof Error) {
@@ -227,8 +227,8 @@ export default function CVPage() {
           <h2 className="text-xl font-bold text-slate-900">Your CVs</h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            The default CV is used for recommendations. Previous default CVs
-            are archived when you choose a new one.
+            The default CV is used for recommendations. You can switch the
+            default between your uploaded CVs at any time.
           </p>
         </div>
 
