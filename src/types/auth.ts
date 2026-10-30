@@ -23,4 +23,6 @@ export interface CurrentUser {
   status: string;
   auth_provider?: string;
   has_password?: boolean;
+  full_name?: string | null;
+  avatar_url?: string | null;
 }

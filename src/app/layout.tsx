@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="h-full antialiased scroll-smooth">
+    <html lang="vi" className="h-full antialiased scroll-smooth" data-scroll-behavior="smooth">
       <body className="min-h-full flex flex-col bg-[#f8f9fc] text-[#17152d] font-sans antialiased selection:bg-violet-500 selection:text-white">
         {children}
       </body>

@@ -29,4 +29,17 @@ export const authService = {
       },
     });
   },
+
+  uploadAvatar(token: string, file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return apiFetch<{ avatar_url: string; message: string }>("/api/v1/auth/avatar", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
 };

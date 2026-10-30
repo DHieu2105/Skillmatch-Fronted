@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   User,
   Calendar,
@@ -12,9 +12,14 @@ import {
   AlertCircle,
   Save,
   Sparkles,
+  Camera,
+  UploadCloud,
+  Loader2,
 } from "lucide-react";
 
 import { studentService } from "@/services/student.service";
+import { authService } from "@/services/auth.service";
+import { notifyUserUpdated } from "@/lib/auth-events";
 import type { StudentProfileForm } from "@/types/student";
 
 const initialForm: StudentProfileForm = {
@@ -36,6 +41,10 @@ export default function StudentProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const token = localStorage.getItem("access_token");
 
@@ -46,6 +55,17 @@ export default function StudentProfilePage() {
       return;
     }
 
+    // Load user avatar
+    authService
+      .getMe(token)
+      .then((user) => {
+        if (user.avatar_url) {
+          setAvatarUrl(user.avatar_url);
+        }
+      })
+      .catch(() => {});
+
+    // Load student profile
     studentService
       .getProfile(token)
       .then((profile) => {
@@ -79,6 +99,49 @@ export default function StudentProfilePage() {
       });
   }, []);
 
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Vui lòng chọn tệp hình ảnh hợp lệ (PNG, JPG, WEBP,...)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Dung lượng ảnh vượt quá 5MB. Vui lòng chọn ảnh nhỏ hơn.");
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setError("Bạn cần đăng nhập để tải ảnh lên.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await authService.uploadAvatar(token, file);
+      setAvatarUrl(response.avatar_url);
+      setSuccess("Tải lên ảnh đại diện qua Cloudinary thành công!");
+      notifyUserUpdated();
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Không thể tải ảnh lên Cloudinary. Vui lòng thử lại.");
+      }
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   const handleSave = async () => {
     const token = localStorage.getItem("access_token");
 
@@ -100,6 +163,7 @@ export default function StudentProfilePage() {
         setProfileExists(true);
         setSuccess("Tạo mới hồ sơ sinh viên thành công!");
       }
+      notifyUserUpdated();
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -110,6 +174,12 @@ export default function StudentProfilePage() {
       setSaving(false);
     }
   };
+
+  const initials = (
+    form.full_name?.trim()
+      ? form.full_name.trim().split(" ").pop()?.slice(0, 1)
+      : "T"
+  )?.toUpperCase() ?? "T";
 
   if (loading) {
     return (
@@ -124,7 +194,7 @@ export default function StudentProfilePage() {
     <div className="mx-auto max-w-4xl space-y-7">
       {/* Header */}
       <section>
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 mb-2">
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
           <User className="h-3.5 w-3.5 text-violet-600" />
           Hồ sơ ứng viên
         </div>
@@ -132,8 +202,79 @@ export default function StudentProfilePage() {
           Thông tin cá nhân
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Cập nhật đầy đủ thông tin học vấn và mục tiêu để nâng cao chất lượng gợi ý công việc từ hệ thống AI.
+          Cập nhật đầy đủ thông tin học vấn và ảnh đại diện để cá nhân hóa giao diện và nâng cao chất lượng gợi ý công việc từ hệ thống AI.
         </p>
+      </section>
+
+      {/* Avatar Section */}
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-8">
+        <h2 className="text-base font-bold text-slate-900 mb-1">Ảnh đại diện</h2>
+        <p className="text-xs text-slate-500 mb-5">
+          Ảnh đại diện sẽ hiển thị trên góc phải thanh điều hướng và hồ sơ của bạn.
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="relative group">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={form.full_name || "Avatar"}
+                className="h-24 w-24 rounded-2xl object-cover shadow-md ring-4 ring-violet-500/20"
+              />
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 text-3xl font-bold text-white shadow-md shadow-violet-500/20">
+                {initials}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-600/30 transition hover:bg-violet-700 hover:scale-105 disabled:opacity-50"
+              title="Tải ảnh mới"
+            >
+              {uploadingAvatar ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Camera className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+
+          <div className="space-y-2 text-center sm:text-left">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png, image/jpeg, image/jpg, image/webp"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50/70 px-4 py-2.5 text-xs font-bold text-violet-700 transition hover:bg-violet-100 disabled:opacity-50"
+              >
+                {uploadingAvatar ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-violet-600" />
+                    <span>Đang tải lên Cloudinary...</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="h-4 w-4 text-violet-600" />
+                    <span>Tải ảnh lên Cloudinary</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">
+              Hỗ trợ PNG, JPG, WEBP. Dung lượng tối đa 5MB.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Form Section */}

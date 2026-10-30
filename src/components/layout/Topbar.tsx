@@ -5,13 +5,20 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notification-events";
 import { notificationService } from "@/services/notification.service";
-import { Bell, LogOut, Menu, Sparkles, User, ShieldCheck } from "lucide-react";
+import { Bell, LogOut, Menu, Sparkles, ShieldCheck } from "lucide-react";
 
 export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter();
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const initials = user?.email?.slice(0, 1).toUpperCase() ?? "U";
+
+  const isRecruiter = user?.role === "RECRUITER";
+  const displayName = user?.full_name?.trim() || user?.email || "Tài khoản";
+  const initials = (
+    user?.full_name?.trim()
+      ? user.full_name.trim().split(" ").pop()?.slice(0, 1)
+      : user?.email?.slice(0, 1)
+  )?.toUpperCase() ?? "U";
 
   useEffect(() => {
     if (user?.role !== "STUDENT") return;
@@ -64,8 +71,6 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     router.replace("/auth/login");
   }
 
-  const isRecruiter = user?.role === "RECRUITER";
-
   return (
     <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-slate-200/70 bg-white/80 px-5 backdrop-blur-xl transition-all sm:px-8">
       {/* Left side */}
@@ -113,33 +118,53 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
         {/* User Profile info */}
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm ${
-              isRecruiter
-                ? "bg-gradient-to-tr from-amber-500 to-orange-400 shadow-amber-500/20"
-                : "bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-violet-500/20"
-            }`}
+          <button
+            type="button"
+            onClick={() =>
+              router.push(isRecruiter ? "/recruiter/company" : "/dashboard/profile")
+            }
+            className="group flex items-center gap-3 rounded-xl text-left transition focus:outline-none"
+            title="Xem và chỉnh sửa hồ sơ"
           >
-            {initials}
-          </div>
-
-          <div className="hidden text-left sm:block">
-            <p className="max-w-[160px] truncate text-sm font-semibold text-slate-900 leading-tight">
-              {user?.email ?? "Tài khoản"}
-            </p>
-            <div className="mt-0.5 flex items-center gap-1">
-              <span
-                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={displayName}
+                className="h-10 w-10 rounded-xl object-cover shadow-sm ring-2 ring-violet-500/20 transition group-hover:ring-violet-500/50"
+              />
+            ) : (
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm transition group-hover:scale-105 ${
                   isRecruiter
-                    ? "bg-amber-50 text-amber-700"
-                    : "bg-violet-50 text-violet-700"
+                    ? "bg-gradient-to-tr from-amber-500 to-orange-400 shadow-amber-500/20"
+                    : "bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-violet-500/20"
                 }`}
               >
-                <ShieldCheck className="h-2.5 w-2.5" />
-                {isRecruiter ? "Nhà tuyển dụng" : "Sinh viên"}
-              </span>
+                {initials}
+              </div>
+            )}
+
+            <div className="hidden text-left sm:block">
+              <p
+                className="max-w-[160px] truncate text-sm font-semibold text-slate-900 leading-tight transition group-hover:text-violet-600"
+                title={user?.email ? `${displayName} (${user.email})` : displayName}
+              >
+                {displayName}
+              </p>
+              <div className="mt-0.5 flex items-center gap-1">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                    isRecruiter
+                      ? "bg-amber-50 text-amber-700"
+                      : "bg-violet-50 text-violet-700"
+                  }`}
+                >
+                  <ShieldCheck className="h-2.5 w-2.5" />
+                  {isRecruiter ? "Nhà tuyển dụng" : "Sinh viên"}
+                </span>
+              </div>
             </div>
-          </div>
+          </button>
 
           <button
             aria-label="Đăng xuất"

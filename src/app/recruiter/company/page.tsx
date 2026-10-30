@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { notifyUserUpdated } from "@/lib/auth-events";
 import { companyService } from "@/services/company.service";
 import { recruiterService } from "@/services/recruiter.service";
 import type { CompanyForm } from "@/types/company";
@@ -65,6 +66,7 @@ export default function RecruiterCompanyPage() {
         );
         if (!active) return;
         setProfileExists(true);
+      notifyUserUpdated();
         setCompanyId(profile.company_id);
         setRecruiter({
           full_name: profile.full_name,
@@ -122,6 +124,7 @@ export default function RecruiterCompanyPage() {
         company_id: savedCompanyId,
       });
       setProfileExists(true);
+      notifyUserUpdated();
       setSuccess(
         profileExists
           ? "Cập nhật hồ sơ công ty thành công!"
