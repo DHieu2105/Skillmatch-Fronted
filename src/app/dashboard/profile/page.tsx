@@ -126,13 +126,13 @@ export default function StudentProfilePage() {
     try {
       const response = await authService.uploadAvatar(token, file);
       setAvatarUrl(response.avatar_url);
-      setSuccess("Tải lên ảnh đại diện qua Cloudinary thành công!");
+      setSuccess("Tải lên ảnh đại diện thành công!");
       notifyUserUpdated();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Không thể tải ảnh lên Cloudinary. Vui lòng thử lại.");
+        setError("Không thể tải ảnh lên. Vui lòng thử lại.");
       }
     } finally {
       setUploadingAvatar(false);
@@ -260,12 +260,12 @@ export default function StudentProfilePage() {
                 {uploadingAvatar ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin text-violet-600" />
-                    <span>Đang tải lên Cloudinary...</span>
+                    <span>Đang tải lên...</span>
                   </>
                 ) : (
                   <>
                     <UploadCloud className="h-4 w-4 text-violet-600" />
-                    <span>Tải ảnh lên Cloudinary</span>
+                    <span>Tải ảnh lên</span>
                   </>
                 )}
               </button>
