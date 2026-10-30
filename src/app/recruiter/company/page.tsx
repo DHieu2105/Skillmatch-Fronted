@@ -1,18 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Building2,
+  User,
+  Phone,
+  Globe,
+  Mail,
+  Briefcase,
+  Save,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { companyService } from "@/services/company.service";
 import { recruiterService } from "@/services/recruiter.service";
 import type { CompanyForm } from "@/types/company";
 import type { RecruiterProfileForm } from "@/types/recruiter";
 
 const initialCompany: CompanyForm = {
-  company_name: "", description: "", email: "", phone: "", website: "",
+  company_name: "",
+  description: "",
+  email: "",
+  phone: "",
+  website: "",
 };
 const initialRecruiter: Omit<RecruiterProfileForm, "company_id"> = {
-  full_name: "", phone: "", position: "",
+  full_name: "",
+  phone: "",
+  position: "",
 };
-const inputClass = "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-amber-400";
 
 export default function RecruiterCompanyPage() {
   const [company, setCompany] = useState<CompanyForm>(initialCompany);
@@ -30,19 +46,31 @@ export default function RecruiterCompanyPage() {
     async function loadProfile() {
       try {
         const token = localStorage.getItem("access_token");
-        if (!token) throw new Error("Please sign in to manage your company profile.");
+        if (!token)
+          throw new Error("Bạn cần đăng nhập để quản lý thông tin doanh nghiệp.");
         let profile;
         try {
           profile = await recruiterService.getProfile(token);
         } catch (error) {
-          if (error instanceof Error && error.message === "Recruiter profile not found") return;
+          if (
+            error instanceof Error &&
+            error.message === "Recruiter profile not found"
+          )
+            return;
           throw error;
         }
-        const companyData = await companyService.getCompany(token, profile.company_id);
+        const companyData = await companyService.getCompany(
+          token,
+          profile.company_id,
+        );
         if (!active) return;
         setProfileExists(true);
         setCompanyId(profile.company_id);
-        setRecruiter({ full_name: profile.full_name, phone: profile.phone, position: profile.position });
+        setRecruiter({
+          full_name: profile.full_name,
+          phone: profile.phone,
+          position: profile.position,
+        });
         setCompany({
           company_name: companyData.company_name,
           description: companyData.description,
@@ -53,19 +81,25 @@ export default function RecruiterCompanyPage() {
       } catch (error) {
         if (!active) return;
         setLoadFailed(true);
-        setError(error instanceof Error ? error.message : "Unable to load company profile.");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Không thể tải hồ sơ công ty.",
+        );
       } finally {
         if (active) setLoading(false);
       }
     }
     void loadProfile();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSave = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      setError("Please sign in to manage your company profile.");
+      setError("Bạn cần đăng nhập để lưu thông tin.");
       return;
     }
     setSaving(true);
@@ -74,81 +108,242 @@ export default function RecruiterCompanyPage() {
     try {
       let savedCompanyId = companyId;
       if (savedCompanyId === null) {
-        const createdCompany = await companyService.createCompany(token, company);
+        const createdCompany = await companyService.createCompany(
+          token,
+          company,
+        );
         savedCompanyId = createdCompany.company_id;
         setCompanyId(savedCompanyId);
       } else {
         await companyService.updateCompany(token, savedCompanyId, company);
       }
-      await recruiterService.saveProfile(token, { ...recruiter, company_id: savedCompanyId });
+      await recruiterService.saveProfile(token, {
+        ...recruiter,
+        company_id: savedCompanyId,
+      });
       setProfileExists(true);
-      setSuccess(profileExists ? "Profile updated successfully." : "Company and recruiter profile created successfully.");
+      setSuccess(
+        profileExists
+          ? "Cập nhật hồ sơ công ty thành công!"
+          : "Khởi tạo thông tin công ty và nhà tuyển dụng thành công!",
+      );
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Unable to save company profile.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Không thể lưu hồ sơ công ty.",
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <p className="text-sm text-slate-500">Loading company profile...</p>;
+  if (loading)
+    return (
+      <div className="mx-auto max-w-5xl space-y-6">
+        <div className="h-8 w-44 animate-pulse rounded-lg bg-slate-200" />
+        <div className="h-96 animate-pulse rounded-2xl bg-slate-200/70" />
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-5xl space-y-7">
+      {/* Header */}
       <section>
-        <p className="text-sm font-semibold text-amber-600">Recruiter Setup</p>
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">Company Profile</h1>
-        <p className="mt-2 text-sm text-slate-500">Manage your company and recruiter information.</p>
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 mb-2">
+          <Building2 className="h-3.5 w-3.5 text-amber-600" />
+          Hồ sơ doanh nghiệp
+        </div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+          Thông tin công ty
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Quản lý thông tin thương hiệu công ty và danh tính nhà tuyển dụng để tạo uy tín với ứng viên.
+        </p>
       </section>
-      <form onSubmit={(event) => { event.preventDefault(); void handleSave(); }} className="space-y-7">
-        <fieldset disabled={saving || loadFailed} className="space-y-7 disabled:opacity-60">
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Recruiter Information</h2>
-            <div className="mt-5 grid gap-5 md:grid-cols-2">
-              {([
-                ["full_name", "Full name", "text"],
-                ["phone", "Phone", "tel"],
-                ["position", "Position", "text"],
-              ] as const).map(([field, label, type]) => (
-                <label key={field} className="space-y-2 text-sm text-slate-600">
-                  <span>{label}</span>
-                  <input type={type} placeholder={label} value={recruiter[field]}
-                    onChange={(event) => setRecruiter({ ...recruiter, [field]: event.target.value })}
-                    className={inputClass} />
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSave();
+        }}
+        className="space-y-6"
+      >
+        <fieldset
+          disabled={saving || loadFailed}
+          className="space-y-6 disabled:opacity-60"
+        >
+          {/* Recruiter info */}
+          <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-7">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <User className="h-4 w-4 text-amber-600" />
+              Thông tin người đại diện tuyển dụng
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Họ và tên
                 </label>
-              ))}
+                <input
+                  type="text"
+                  placeholder="Nguyễn Văn A"
+                  value={recruiter.full_name}
+                  onChange={(event) =>
+                    setRecruiter({ ...recruiter, full_name: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Số điện thoại
+                </label>
+                <input
+                  type="tel"
+                  placeholder="0912 345 678"
+                  value={recruiter.phone}
+                  onChange={(event) =>
+                    setRecruiter({ ...recruiter, phone: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Chức vụ / Vị trí
+                </label>
+                <input
+                  type="text"
+                  placeholder="HR Manager, Talent Acquisition..."
+                  value={recruiter.position}
+                  onChange={(event) =>
+                    setRecruiter({ ...recruiter, position: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
             </div>
           </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Company Information</h2>
-            <div className="mt-5 grid gap-5 md:grid-cols-2">
-              {([
-                ["company_name", "Company name", "text"],
-                ["email", "Company email", "email"],
-                ["phone", "Phone", "tel"],
-                ["website", "Website", "text"],
-              ] as const).map(([field, label, type]) => (
-                <label key={field} className="space-y-2 text-sm text-slate-600">
-                  <span>{label}</span>
-                  <input type={type} placeholder={label} value={company[field]}
-                    onChange={(event) => setCompany({ ...company, [field]: event.target.value })}
-                    className={inputClass} />
+
+          {/* Company info */}
+          <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-7">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Building2 className="h-4 w-4 text-amber-600" />
+              Thông tin công ty / Tổ chức
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Tên công ty
                 </label>
-              ))}
+                <input
+                  type="text"
+                  placeholder="Công ty Cổ phần Công nghệ..."
+                  value={company.company_name}
+                  onChange={(event) =>
+                    setCompany({ ...company, company_name: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Email liên hệ doanh nghiệp
+                </label>
+                <input
+                  type="email"
+                  placeholder="contact@company.com"
+                  value={company.email}
+                  onChange={(event) =>
+                    setCompany({ ...company, email: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Hotline công ty
+                </label>
+                <input
+                  type="tel"
+                  placeholder="024 1234 5678"
+                  value={company.phone}
+                  onChange={(event) =>
+                    setCompany({ ...company, phone: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Website chính thức
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://company.vn"
+                  value={company.website}
+                  onChange={(event) =>
+                    setCompany({ ...company, website: event.target.value })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 font-medium"
+                />
+              </div>
             </div>
-            <label className="mt-5 block space-y-2 text-sm text-slate-600">
-              <span>Company description</span>
-              <textarea rows={5} placeholder="Company description" value={company.description}
-                onChange={(event) => setCompany({ ...company, description: event.target.value })}
-                className={inputClass} />
-            </label>
+
+            <div className="mt-4">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Giới thiệu về doanh nghiệp & Văn hóa làm việc
+              </label>
+              <textarea
+                rows={4}
+                placeholder="Mô tả môi trường, sứ mệnh, phúc lợi nổi bật để thu hút ứng viên..."
+                value={company.description}
+                onChange={(event) =>
+                  setCompany({ ...company, description: event.target.value })
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm text-slate-800 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
+              />
+            </div>
           </section>
         </fieldset>
-        {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
-        {success && <p role="status" className="text-sm text-emerald-600">{success}</p>}
+
+        {error && (
+          <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-700">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+
         <div className="flex justify-end">
-          <button type="submit" disabled={saving || loadFailed}
-            className="rounded-xl bg-amber-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60">
-            {saving ? "Saving..." : profileExists ? "Save Changes" : "Create Company"}
+          <button
+            type="submit"
+            disabled={saving || loadFailed}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-xs font-semibold text-white shadow-md shadow-amber-500/25 transition hover:shadow-lg disabled:opacity-50"
+          >
+            {saving ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            <span>
+              {saving
+                ? "Đang lưu..."
+                : profileExists
+                  ? "Lưu thay đổi"
+                  : "Tạo hồ sơ công ty"}
+            </span>
           </button>
         </div>
       </form>

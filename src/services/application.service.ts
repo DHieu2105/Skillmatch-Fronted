@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api";
+import { cleanJobTitle } from "@/lib/format";
 import type {
   Application,
   ApplicationCreate,
@@ -18,8 +19,8 @@ export const applicationService = {
     });
   },
 
-  getMyApplications(token: string) {
-    return apiFetch<StudentApplication[]>(
+  async getMyApplications(token: string) {
+    const data = await apiFetch<StudentApplication[]>(
       "/api/v1/applications/me",
       {
         headers: {
@@ -27,18 +28,30 @@ export const applicationService = {
         },
       },
     );
+    return data.map((item) => ({
+      ...item,
+      job_title: cleanJobTitle(item.job_title),
+    }));
   },
 
-  getRecruiterApplications(token: string) {
-    return apiFetch<RecruiterApplication[]>("/api/v1/recruiter/applications", {
+  async getRecruiterApplications(token: string) {
+    const data = await apiFetch<RecruiterApplication[]>("/api/v1/recruiter/applications", {
       headers: { Authorization: `Bearer ${token}` },
     });
+    return data.map((item) => ({
+      ...item,
+      job_title: cleanJobTitle(item.job_title),
+    }));
   },
 
-  getRecruiterApplication(token: string, applicationId: number) {
-    return apiFetch<RecruiterApplication>(`/api/v1/recruiter/applications/${applicationId}`, {
+  async getRecruiterApplication(token: string, applicationId: number) {
+    const data = await apiFetch<RecruiterApplication>(`/api/v1/recruiter/applications/${applicationId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    return {
+      ...data,
+      job_title: cleanJobTitle(data.job_title),
+    };
   },
 
   updateStatus(token: string, applicationId: number, status: ApplicationStatus) {

@@ -5,56 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notification-events";
 import { notificationService } from "@/services/notification.service";
-
-type IconName =
-  | "bell"
-  | "briefcase"
-  | "building"
-  | "chevron"
-  | "grid"
-  | "logout"
-  | "menu"
-  | "profile"
-  | "search"
-  | "settings";
-
-export function Icon({
-  name,
-  size = 20,
-}: {
-  name: IconName;
-  size?: number;
-}) {
-  const paths: Record<IconName, React.ReactNode> = {
-    bell: <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />,
-    briefcase: <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16v13H4zM4 12h16M10 12v2h4v-2" />,
-    building: <path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h3a1 1 0 0 1 1 1v11M2 21h20M8 7h2M8 11h2M8 15h2M12 7h2M12 11h2M12 15h2" />,
-    chevron: <path d="m8 10 4 4 4-4" />,
-    grid: <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />,
-    logout: <path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-4M15 21h4a2 2 0 0 0 2-2" />,
-    menu: <path d="M4 6h16M4 12h16M4 18h16" />,
-    profile: <path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8" />,
-    search: <path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" />,
-    settings: <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-2.5V20a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H6v-2.5h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3h2.5v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v2.5h-.2a1.7 1.7 0 0 0-1.6 1.3Z" />,
-  };
-
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height={size}
-      viewBox="0 0 24 24"
-      width={size}
-      xmlns="http://www.w3.org/2000/svg"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
+import { Bell, LogOut, Menu, Sparkles, User, ShieldCheck } from "lucide-react";
 
 export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter();
@@ -79,8 +30,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         const notifications = await notificationService.getNotifications(token);
         if (active) {
           setUnreadCount(
-            notifications.filter((notification) => !notification.is_read)
-              .length,
+            notifications.filter((notification) => !notification.is_read).length
           );
         }
       } catch {
@@ -95,32 +45,17 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     };
 
     void loadUnreadCount();
-    const refreshInterval = window.setInterval(
-      loadUnreadCount,
-      60_000,
-    );
-    window.addEventListener(
-      NOTIFICATIONS_UPDATED_EVENT,
-      loadUnreadCount,
-    );
+    const refreshInterval = window.setInterval(loadUnreadCount, 60_000);
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, loadUnreadCount);
     window.addEventListener("focus", loadUnreadCount);
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange,
-    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       active = false;
       window.clearInterval(refreshInterval);
-      window.removeEventListener(
-        NOTIFICATIONS_UPDATED_EVENT,
-        loadUnreadCount,
-      );
+      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, loadUnreadCount);
       window.removeEventListener("focus", loadUnreadCount);
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange,
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [user?.role]);
 
@@ -129,50 +64,91 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     router.replace("/auth/login");
   }
 
+  const isRecruiter = user?.role === "RECRUITER";
+
   return (
-    <header className="flex h-[76px] items-center justify-between border-b border-slate-200/80 bg-white px-5 sm:px-8">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-slate-200/70 bg-white/80 px-5 backdrop-blur-xl transition-all sm:px-8">
+      {/* Left side */}
+      <div className="flex items-center gap-3">
         <button
-          aria-label="Open navigation"
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
+          aria-label="Mở menu"
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 lg:hidden"
           onClick={onMenuClick}
           type="button"
         >
-          <Icon name="menu" />
+          <Menu className="h-5 w-5" />
         </button>
+
+        <div className="hidden items-center gap-2 text-xs font-medium text-slate-400 sm:flex">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-600">
+            <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+            AI-Driven Job Platform
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Right side actions */}
+      <div className="flex items-center gap-3 sm:gap-4">
         {user?.role === "STUDENT" && (
           <button
             aria-label={
               unreadCount > 0
-                ? `${unreadCount} unread notifications`
-                : "Notifications"
+                ? `${unreadCount} thông báo chưa đọc`
+                : "Thông báo"
             }
-            className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             onClick={() => router.push("/dashboard/notifications")}
             type="button"
           >
-            <Icon name="bell" size={19} />
+            <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </button>
         )}
-        <div className="h-8 w-px bg-slate-200" />
+
+        <div className="h-6 w-px bg-slate-200" />
+
+        {/* User Profile info */}
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm ${
+              isRecruiter
+                ? "bg-gradient-to-tr from-amber-500 to-orange-400 shadow-amber-500/20"
+                : "bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-violet-500/20"
+            }`}
+          >
             {initials}
           </div>
+
           <div className="hidden text-left sm:block">
-            <p className="max-w-32 truncate text-sm font-semibold text-slate-800">{user?.email ?? "My account"}</p>
-            <p className="text-xs text-slate-400">{user?.role === "RECRUITER" ? "Recruiter" : "Student"}</p>
+            <p className="max-w-[160px] truncate text-sm font-semibold text-slate-900 leading-tight">
+              {user?.email ?? "Tài khoản"}
+            </p>
+            <div className="mt-0.5 flex items-center gap-1">
+              <span
+                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                  isRecruiter
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-violet-50 text-violet-700"
+                }`}
+              >
+                <ShieldCheck className="h-2.5 w-2.5" />
+                {isRecruiter ? "Nhà tuyển dụng" : "Sinh viên"}
+              </span>
+            </div>
           </div>
-          <button aria-label="Log out" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-rose-500" onClick={handleLogout} type="button">
-            <Icon name="logout" size={18} />
+
+          <button
+            aria-label="Đăng xuất"
+            title="Đăng xuất"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+            onClick={handleLogout}
+            type="button"
+          >
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </div>

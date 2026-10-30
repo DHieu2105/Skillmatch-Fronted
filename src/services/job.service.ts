@@ -1,16 +1,21 @@
 import { apiFetch } from "@/lib/api";
+import { cleanJobTitle } from "@/lib/format";
 import type { Job, JobCreate, JobUpdate, JobStatus } from "@/types/job";
 
 export const jobService = {
-  getJobs(token: string) {
-    return apiFetch<Job[]>("/api/v1/jobs", {
+  async getJobs(token: string) {
+    const jobs = await apiFetch<Job[]>("/api/v1/jobs", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    return jobs.map((job) => ({
+      ...job,
+      title: cleanJobTitle(job.title),
+    }));
   },
 
-  searchJobs(
+  async searchJobs(
     token: string,
     filters: {
       title?: string;
@@ -37,7 +42,7 @@ export const jobService = {
       params.append("experience_level", filters.experience_level);
     }
 
-    return apiFetch<Job[]>(
+    const jobs = await apiFetch<Job[]>(
       `/api/v1/jobs/search?${params.toString()}`,
       {
         headers: {
@@ -45,14 +50,22 @@ export const jobService = {
         },
       },
     );
+    return jobs.map((job) => ({
+      ...job,
+      title: cleanJobTitle(job.title),
+    }));
   },
 
-  getJobById(token: string, jobId: number) {
-    return apiFetch<Job>(`/api/v1/jobs/${jobId}`, {
+  async getJobById(token: string, jobId: number) {
+    const job = await apiFetch<Job>(`/api/v1/jobs/${jobId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    return {
+      ...job,
+      title: cleanJobTitle(job.title),
+    };
   },
 
   createJob(token: string, data: JobCreate) {
@@ -68,22 +81,29 @@ export const jobService = {
   updateJob(token: string, jobId: number, data: JobUpdate) {
     return apiFetch<Job>(`/api/v1/jobs/${jobId}`, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(data),
     });
   },
 
   updateJobStatus(token: string, jobId: number, status: JobStatus) {
-    return apiFetch<Job>(`/api/v1/jobs/${jobId}/status?status=${status}`, {
+    return apiFetch<Job>(`/api/v1/jobs/${jobId}/status`, {
       method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
     });
   },
 
   deleteJob(token: string, jobId: number) {
-    return apiFetch<{ message: string }>(`/api/v1/jobs/${jobId}`, {
+    return apiFetch(`/api/v1/jobs/${jobId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
   },
 };

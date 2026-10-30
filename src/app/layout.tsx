@@ -1,29 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "SkillMatch",
-  description: "Connect your skills with meaningful opportunities.",
+  title: "SkillMatch — Nền tảng kết nối việc làm thông minh bằng AI",
+  description: "Kết nối kỹ năng và cơ hội việc làm mơ ước với công nghệ AI Matching tiên tiến.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="vi" className="h-full antialiased scroll-smooth">
+      <body className="min-h-full flex flex-col bg-[#f8f9fc] text-[#17152d] font-sans antialiased selection:bg-violet-500 selection:text-white">
+        {children}
+      </body>
     </html>
   );
 }
