@@ -11,7 +11,6 @@ import {
   LogOut,
   Menu,
   Sparkles,
-  Search,
   ShieldCheck,
   ChevronDown,
 } from "lucide-react";
@@ -37,7 +36,6 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname();
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const isRecruiter = user?.role === "RECRUITER";
   const tabs = isRecruiter ? recruiterTabs : studentTabs;
@@ -100,13 +98,6 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     router.replace("/auth/login");
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/dashboard/jobs?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  }
-
   return (
     <header className="sticky top-0 z-40 bg-gradient-to-r from-[#20083c] via-[#5c1363] via-[#7d1470] to-[#b3196b] text-white shadow-lg shadow-purple-950/20 backdrop-blur-md">
       {/* Top row */}
@@ -139,21 +130,6 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             </div>
           </Link>
         </div>
-
-        {/* Search Bar */}
-        <form
-          onSubmit={handleSearch}
-          className="relative mx-auto hidden max-w-md flex-1 md:block"
-        >
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/60" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm công việc, kỹ năng, công ty..."
-            className="w-full rounded-full border border-white/20 bg-white/15 py-1.5 pl-9 pr-4 text-xs text-white placeholder-white/60 backdrop-blur-md outline-none transition hover:bg-white/20 focus:bg-white/25 focus:ring-2 focus:ring-white/30"
-          />
-        </form>
 
         {/* Right side actions */}
         <div className="flex items-center gap-2.5 sm:gap-3">

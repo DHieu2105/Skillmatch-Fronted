@@ -1,28 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Sparkles,
   Briefcase,
   FileCheck2,
   FileText,
-  TrendingUp,
   ArrowRight,
   MapPin,
-  CheckCircle2,
-  AlertCircle,
   Cpu,
-  UserCheck,
   ChevronRight,
   Flame,
-  Clock,
   Plus,
   Download,
   Building2,
-  Coffee,
-  Check,
-  X,
   Send,
 } from "lucide-react";
 
@@ -32,6 +24,10 @@ import type { StudentApplication } from "@/types/application";
 import { recommendationService } from "@/services/recommendation.service";
 import type { Recommendation } from "@/types/recommendation";
 import { studentService } from "@/services/student.service";
+import { skillService } from "@/services/skill.service";
+import type { StudentSkill } from "@/types/skill";
+import { jobService } from "@/services/job.service";
+import type { Job } from "@/types/job";
 import { cleanJobTitle } from "@/lib/format";
 import type { ProfileCompletion, StudentProfile } from "@/types/student";
 
@@ -65,61 +61,17 @@ function getStatusBadge(status: string) {
   }
 }
 
-// Sample companies seeking students (similar to "Đội Sản phẩm" card)
-const topCompanies = [
-  {
-    name: "FPT Software",
-    initials: "FS",
-    avatarBg: "bg-purple-600",
-    role: "Lập trình viên React/Node",
-    status: "Đang tuyển",
-    statusColor: "text-emerald-500",
-  },
-  {
-    name: "Viettel Solutions",
-    initials: "VS",
-    avatarBg: "bg-blue-600",
-    role: "Kỹ sư Backend Python",
-    status: "Phản hồi nhanh",
-    statusColor: "text-emerald-500",
-  },
-  {
-    name: "VNG Corporation",
-    initials: "VN",
-    avatarBg: "bg-orange-500",
-    role: "Kỹ sư Dữ liệu AI",
-    status: "Xem hồ sơ",
-    statusColor: "text-amber-500",
-  },
-  {
-    name: "Momo Tech Lab",
-    initials: "MM",
-    avatarBg: "bg-pink-600",
-    role: "Frontend Developer",
-    status: "Đang tuyển",
-    statusColor: "text-emerald-500",
-  },
-  {
-    name: "Tiki Corporation",
-    initials: "TK",
-    avatarBg: "bg-cyan-600",
-    role: "Thực tập sinh AI",
-    status: "Phỏng vấn tuần này",
-    statusColor: "text-purple-500",
-  },
-];
-
 export default function StudentDashboardPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [applicationsLoading, setApplicationsLoading] = useState(true);
-  const [applicationsError, setApplicationsError] = useState("");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
-  const [recommendationsError, setRecommendationsError] = useState("");
   const [profileCompletion, setProfileCompletion] =
     useState<ProfileCompletion | null>(null);
+  const [mySkills, setMySkills] = useState<StudentSkill[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [activeTab, setActiveTab] = useState<"ALL" | "REVIEWING" | "INTERVIEW" | "ACCEPTED">("ALL");
 
   // Real-time ticking clock
@@ -160,6 +112,7 @@ export default function StudentDashboardPage() {
   }, []);
 
   useEffect(() => {
+    let active = true;
     const token = sessionStorage.getItem("access_token");
 
     if (!token) {
@@ -168,56 +121,40 @@ export default function StudentDashboardPage() {
       return;
     }
 
-    // Load profile
-    studentService
-      .getProfile(token)
-      .then((data) => setProfile(data))
-      .catch(() => {});
+    Promise.allSettled([
+      studentService.getProfile(token),
+      applicationService.getMyApplications(token),
+      studentService.getProfileCompletion(token),
+      recommendationService.getRecommendations(token),
+      skillService.getMySkills(token),
+      jobService.getJobs(token),
+    ]).then(([resProfile, resApps, resComp, resRecs, resSkills, resJobs]) => {
+      if (!active) return;
 
-    // Load applications
-    applicationService
-      .getMyApplications(token)
-      .then((data) => {
-        setApplications(data);
-      })
-      .catch((error) => {
-        if (error instanceof Error) {
-          setApplicationsError(error.message);
-        }
-      })
-      .finally(() => {
-        setApplicationsLoading(false);
-      });
+      if (resProfile.status === "fulfilled") setProfile(resProfile.value);
+      if (resApps.status === "fulfilled") setApplications(resApps.value);
+      if (resComp.status === "fulfilled") setProfileCompletion(resComp.value);
+      if (resRecs.status === "fulfilled") setRecommendations(resRecs.value);
+      if (resSkills.status === "fulfilled") setMySkills(resSkills.value);
+      if (resJobs.status === "fulfilled") setJobs(resJobs.value);
 
-    // Load completion
-    studentService
-      .getProfileCompletion(token)
-      .then((data) => {
-        setProfileCompletion(data);
-      })
-      .catch(() => {
-        setProfileCompletion(null);
-      });
+      setApplicationsLoading(false);
+      setRecommendationsLoading(false);
+    });
 
-    // Load recommendations
-    recommendationService
-      .getRecommendations(token)
-      .then((data) => {
-        setRecommendations(data);
-      })
-      .catch((error) => {
-        if (error instanceof Error) {
-          setRecommendationsError(error.message);
-        }
-      })
-      .finally(() => {
-        setRecommendationsLoading(false);
-      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const completionPercentage = profileCompletion?.percentage ?? 85;
-  const displayName = profile?.full_name || user?.full_name || "Minh Anh";
-  const careerTarget = profile?.career_goal || "Kỹ sư phần mềm Fullstack";
+  const completionPercentage = profileCompletion?.percentage ?? 0;
+  const displayName =
+    profile?.full_name?.trim() ||
+    user?.full_name?.trim() ||
+    user?.email?.split("@")[0] ||
+    "Sinh viên";
+  const careerTarget =
+    profile?.career_goal?.trim() || "Chưa cập nhật mục tiêu nghề nghiệp";
 
   // Filter applications by tab
   const filteredApplications = applications.filter((app) => {
@@ -228,6 +165,46 @@ export default function StudentDashboardPage() {
   const topRecommendations = [...recommendations]
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
+
+  // Status counters from real applications
+  const reviewingCount = applications.filter(
+    (app) => app.status === "REVIEWING"
+  ).length;
+  const interviewCount = applications.filter(
+    (app) => app.status === "INTERVIEW"
+  ).length;
+  const acceptedCount = applications.filter(
+    (app) => app.status === "ACCEPTED"
+  ).length;
+
+  // Real open jobs from the database
+  const openJobs = useMemo(
+    () => jobs.filter((j) => j.status === "OPEN"),
+    [jobs]
+  );
+
+  // Extract distinct hiring companies from real open jobs
+  const activeCompanies = useMemo(() => {
+    const map = new Map<
+      string,
+      { name: string; jobsCount: number; location: string }
+    >();
+    openJobs.forEach((j) => {
+      const existing = map.get(j.company_name);
+      if (existing) {
+        existing.jobsCount += 1;
+      } else {
+        map.set(j.company_name, {
+          name: j.company_name,
+          jobsCount: 1,
+          location: j.location,
+        });
+      }
+    });
+    return Array.from(map.values()).slice(0, 5);
+  }, [openJobs]);
+
+  const latestOpenJobs = useMemo(() => openJobs.slice(0, 3), [openJobs]);
 
   // Greeting based on hour
   const greeting = (() => {
@@ -256,7 +233,7 @@ export default function StudentDashboardPage() {
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             <Download className="h-3.5 w-3.5 text-slate-500" />
-            <span>Xuất hồ sơ CV</span>
+            <span>Hồ sơ CV của tôi</span>
           </Link>
           <Link
             href="/dashboard/jobs"
@@ -279,19 +256,26 @@ export default function StudentDashboardPage() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Hồ sơ sẵn sàng ứng tuyển</span>
+              <span>
+                {profileCompletion?.has_cv
+                  ? "Hồ sơ sẵn sàng ứng tuyển"
+                  : "Chưa hoàn thiện hồ sơ ứng tuyển"}
+              </span>
             </div>
 
             {/* Live Clock Display */}
             <div className="space-y-1">
               <div className="font-mono text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white drop-shadow-md">
-                {currentTime || "21:50:53"}
+                {currentTime || "00:00:00"}
               </div>
               <p className="text-xs sm:text-sm font-medium text-white/80">
-                {currentDate || "Thứ Sáu, 30/10/2026"} • Ca hành chính 08:00 – 17:00
+                {currentDate} • Nền tảng kết nối cơ hội nghề nghiệp
               </p>
               <p className="text-xs text-white/60">
-                Mục tiêu nghề nghiệp: <span className="text-pink-300 font-semibold">{careerTarget}</span>
+                Mục tiêu nghề nghiệp:{" "}
+                <span className="text-pink-300 font-semibold">
+                  {careerTarget}
+                </span>
               </p>
             </div>
 
@@ -302,7 +286,7 @@ export default function StudentDashboardPage() {
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white/20"
               >
                 <Briefcase className="h-3.5 w-3.5 text-white/80" />
-                <span>Khám phá việc</span>
+                <span>Khám phá việc làm</span>
               </Link>
 
               <Link
@@ -334,7 +318,7 @@ export default function StudentDashboardPage() {
                   {completionPercentage}%
                 </span>
                 <span className="text-xs text-emerald-300 font-semibold">
-                  Chuẩn AI Matching
+                  {completionPercentage >= 80 ? "Chuẩn AI Matching" : "Cần hoàn thiện thêm"}
                 </span>
               </div>
             </div>
@@ -348,13 +332,13 @@ export default function StudentDashboardPage() {
                 />
               </div>
               <p className="text-[11px] text-white/60">
-                Mục tiêu 100% • Tăng gấp 3 lần tỷ lệ được mời phỏng vấn
+                Mục tiêu 100% • Tăng tỷ lệ được doanh nghiệp mời phỏng vấn
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/10">
               <div className="rounded-xl bg-white/5 p-2 text-center">
-                <p className="text-[10px] text-white/60">Việc đề xuất</p>
+                <p className="text-[10px] text-white/60">Việc AI đề xuất</p>
                 <p className="text-sm font-bold text-white">
                   {recommendations.length} vị trí
                 </p>
@@ -370,7 +354,7 @@ export default function StudentDashboardPage() {
         </div>
       </section>
 
-      {/* 3. Four Stat Metric Cards with Colorful Gradient Icons */}
+      {/* 3. Four Stat Metric Cards with Colorful Gradient Icons - 100% REAL DATA */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Việc làm AI */}
         <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md">
@@ -378,12 +362,18 @@ export default function StudentDashboardPage() {
             <p className="text-xs font-semibold text-slate-500">Việc làm AI gợi ý</p>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-slate-900 tracking-tight">
-                {recommendations.length > 0 ? recommendations.length : 32}
+                {recommendations.length}
               </span>
-              <span className="text-xs font-medium text-slate-400">/ 40 vị trí</span>
+              <span className="text-xs font-medium text-slate-400">vị trí phù hợp</span>
             </div>
-            <p className="text-[11px] font-semibold text-emerald-600">
-              ▲ 8 việc làm mới tuần này
+            <p
+              className={`text-[11px] font-semibold ${
+                recommendations.length > 0 ? "text-emerald-600" : "text-slate-400"
+              }`}
+            >
+              {recommendations.length > 0
+                ? `Độ khớp cao nhất ${Math.round(topRecommendations[0]?.score || 0)}%`
+                : "Chưa có gợi ý mới"}
             </p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25">
@@ -397,12 +387,28 @@ export default function StudentDashboardPage() {
             <p className="text-xs font-semibold text-slate-500">Đơn đã ứng tuyển</p>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-slate-900 tracking-tight">
-                {applications.length > 0 ? applications.length : 4}
+                {applications.length}
               </span>
-              <span className="text-xs font-medium text-slate-400">đơn</span>
+              <span className="text-xs font-medium text-slate-400">hồ sơ đã nộp</span>
             </div>
-            <p className="text-[11px] font-semibold text-amber-600">
-              2 đơn đang xét duyệt
+            <p
+              className={`text-[11px] font-semibold ${
+                interviewCount > 0
+                  ? "text-purple-600"
+                  : reviewingCount > 0
+                  ? "text-amber-600"
+                  : acceptedCount > 0
+                  ? "text-emerald-600"
+                  : "text-slate-400"
+              }`}
+            >
+              {interviewCount > 0
+                ? `${interviewCount} đơn được mời phỏng vấn`
+                : reviewingCount > 0
+                ? `${reviewingCount} đơn đang xét duyệt`
+                : acceptedCount > 0
+                ? `${acceptedCount} đơn đã trúng tuyển`
+                : "Chưa có đơn chờ duyệt"}
             </p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white shadow-lg shadow-orange-500/25">
@@ -413,15 +419,21 @@ export default function StudentDashboardPage() {
         {/* Card 3: CV của tôi */}
         <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-slate-500">CV khởi tạo</p>
+            <p className="text-xs font-semibold text-slate-500">CV trực tuyến</p>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-slate-900 tracking-tight">
-                {profileCompletion?.has_cv ? "1" : "0"}
+                {profileCompletion?.has_cv ? 1 : 0}
               </span>
               <span className="text-xs font-medium text-slate-400">bản chuẩn</span>
             </div>
-            <p className="text-[11px] font-semibold text-sky-600">
-              Sẵn sàng ứng tuyển ngay
+            <p
+              className={`text-[11px] font-semibold ${
+                profileCompletion?.has_cv ? "text-sky-600" : "text-slate-400"
+              }`}
+            >
+              {profileCompletion?.has_cv
+                ? "Đã sẵn sàng ứng tuyển"
+                : "Chưa tải lên hồ sơ CV"}
             </p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-400 to-blue-600 text-white shadow-lg shadow-sky-500/25">
@@ -435,12 +447,18 @@ export default function StudentDashboardPage() {
             <p className="text-xs font-semibold text-slate-500">Kỹ năng tích lũy</p>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-slate-900 tracking-tight">
-                12
+                {mySkills.length}
               </span>
               <span className="text-xs font-medium text-slate-400">kỹ năng</span>
             </div>
-            <p className="text-[11px] font-semibold text-emerald-600">
-              Khớp 95% yêu cầu AI
+            <p
+              className={`text-[11px] font-semibold ${
+                mySkills.length > 0 ? "text-emerald-600" : "text-slate-400"
+              }`}
+            >
+              {mySkills.length > 0
+                ? `${mySkills.length} kỹ năng trong hồ sơ`
+                : "Chưa thêm kỹ năng nào"}
             </p>
           </div>
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-500/25">
@@ -595,172 +613,214 @@ export default function StudentDashboardPage() {
               </Link>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topRecommendations.map((rec) => {
-                const score = Math.round(rec.score);
-                return (
+            {recommendationsLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
                   <div
-                    key={rec.recommendation_id}
-                    className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition hover:-translate-y-1 hover:border-violet-300 hover:bg-white hover:shadow-md"
+                    key={i}
+                    className="h-44 animate-pulse rounded-2xl bg-slate-100"
+                  />
+                ))}
+              </div>
+            ) : topRecommendations.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
+                <Sparkles className="mx-auto h-8 w-8 text-purple-400" />
+                <p className="mt-2 text-sm font-bold text-slate-700">
+                  Chưa có việc làm gợi ý từ AI
+                </p>
+                <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
+                  Hãy hoàn thiện kỹ năng chuyên môn và hồ sơ CV để thuật toán AI Matching đề xuất các vị trí phù hợp nhất với bạn.
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-3">
+                  <Link
+                    href="/dashboard/skills"
+                    className="rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-purple-700 shadow-sm"
                   >
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="truncate text-sm font-bold text-slate-900">
-                            {cleanJobTitle(rec.job_title)}
-                          </h3>
-                          <p className="truncate text-xs text-slate-500 mt-0.5">
-                            {rec.company_name}
-                          </p>
+                    Thêm kỹ năng
+                  </Link>
+                  <Link
+                    href="/dashboard/cv"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Cập nhật CV
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {topRecommendations.map((rec) => {
+                  const score = Math.round(rec.score);
+                  return (
+                    <div
+                      key={rec.recommendation_id}
+                      className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition hover:-translate-y-1 hover:border-violet-300 hover:bg-white hover:shadow-md"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="truncate text-sm font-bold text-slate-900">
+                              {cleanJobTitle(rec.job_title)}
+                            </h3>
+                            <p className="truncate text-xs text-slate-500 mt-0.5">
+                              {rec.company_name}
+                            </p>
+                          </div>
+                          <div className="shrink-0 rounded-xl bg-purple-100 px-2 py-0.5 text-center font-bold text-purple-700 text-xs">
+                            {score}%
+                          </div>
                         </div>
-                        <div className="shrink-0 rounded-xl bg-purple-100 px-2 py-0.5 text-center font-bold text-purple-700 text-xs">
-                          {score}%
+
+                        <div className="mt-3 flex items-center gap-1 text-[11px] text-slate-400">
+                          <MapPin className="h-3 w-3" />
+                          <span className="truncate">{rec.location}</span>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {rec.matched_skills.slice(0, 2).map((skill, idx) => (
+                            <span
+                              key={idx}
+                              className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
+                            >
+                              {skill}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="mt-3 flex items-center gap-1 text-[11px] text-slate-400">
-                        <MapPin className="h-3 w-3" />
-                        <span className="truncate">{rec.location}</span>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {rec.matched_skills.slice(0, 2).map((skill, idx) => (
-                          <span
-                            key={idx}
-                            className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                      <div className="mt-4 pt-3 border-t border-slate-200/60">
+                        <Link
+                          href={`/dashboard/jobs/${rec.job_id}`}
+                          className="flex w-full items-center justify-center gap-1 rounded-xl bg-violet-600 py-2 text-xs font-bold text-white transition hover:bg-violet-700"
+                        >
+                          Ứng tuyển ngay
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
                       </div>
                     </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-200/60">
-                      <Link
-                        href={`/dashboard/jobs/${rec.job_id}`}
-                        className="flex w-full items-center justify-center gap-1 rounded-xl bg-violet-600 py-2 text-xs font-bold text-white transition hover:bg-violet-700"
-                      >
-                        Ứng tuyển ngay
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column (1/3): Top Companies & HOT Jobs Container */}
+        {/* Right Column (1/3): Real Companies & Real Open Jobs */}
         <div className="space-y-7">
-          {/* Top Companies Card (similar to "Đội Sản phẩm" card in Image 1) */}
+          {/* Real Companies Card */}
           <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">
-                Nhà tuyển dụng hàng đầu
-              </h2>
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-purple-600" />
+                <h2 className="text-base font-bold text-slate-900">
+                  Doanh nghiệp tuyển dụng
+                </h2>
+              </div>
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
-                5/5 đang mở tuyển
+                {activeCompanies.length} đơn vị
               </span>
             </div>
 
-            <div className="divide-y divide-slate-100 pt-1">
-              {topCompanies.map((company, i) => (
-                <div key={i} className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
+            {activeCompanies.length === 0 ? (
+              <div className="py-8 text-center">
+                <Building2 className="mx-auto h-8 w-8 text-slate-300" />
+                <p className="mt-2 text-xs font-bold text-slate-500">
+                  Chưa có doanh nghiệp mở tuyển
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  Các vị trí tuyển dụng mới sẽ hiển thị tại đây
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 pt-1">
+                {activeCompanies.map((company, i) => {
+                  const words = company.name.trim().split(" ");
+                  const initials =
+                    words.length >= 2
+                      ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
+                      : company.name.slice(0, 2).toUpperCase();
+
+                  return (
                     <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ${company.avatarBg}`}
+                      key={i}
+                      className="flex items-center justify-between py-3"
                     >
-                      {company.initials}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-xs font-bold text-white shadow-sm">
+                          {initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 leading-tight truncate">
+                            {company.name}
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                            {company.location || "Việt Nam"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[11px] font-semibold text-emerald-600">
+                          {company.jobsCount} vị trí
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 leading-tight">
-                        {company.name}
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        {company.role}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    <span className="text-[11px] font-semibold text-slate-500">
-                      {company.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Deep Purple Gradient Card (similar to "Đơn chờ duyệt" card in Image 1) */}
+          {/* Deep Purple Gradient Card: Real Open Jobs */}
           <div className="rounded-3xl bg-gradient-to-b from-[#1b0a3c] via-[#2a0e54] to-[#4d136f] p-6 text-white shadow-xl shadow-purple-950/30 space-y-4 border border-white/10">
-            <div>
-              <h3 className="text-base font-bold text-white leading-tight">
-                Cơ hội việc làm nổi bật
-              </h3>
-              <p className="text-xs text-white/70 mt-0.5">
-                3 vị trí AI đánh giá phù hợp nhất với bạn
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white leading-tight">
+                  Cơ hội việc làm mới nhất
+                </h3>
+                <p className="text-xs text-white/70 mt-0.5">
+                  Các vị trí tuyển dụng đang mở tuyển
+                </p>
+              </div>
+              <Briefcase className="h-5 w-5 text-pink-300 shrink-0" />
             </div>
 
-            {/* List of glass items */}
-            <div className="space-y-3">
-              {[
-                {
-                  company: "Shopee Vietnam",
-                  role: "Junior Frontend Engineer",
-                  time: "Hạn chót: 05/11",
-                  salary: "15 - 22 triệu",
-                },
-                {
-                  company: "Tiki Tech Hub",
-                  role: "Fullstack Node/React",
-                  time: "Phỏng vấn trực tuyến",
-                  salary: "18 - 25 triệu",
-                },
-                {
-                  company: "VNPT Technology",
-                  role: "AI Data Analyst",
-                  time: "Cần bạn xác nhận",
-                  salary: "16 - 20 triệu",
-                },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-white leading-tight">
-                        {item.role}
-                      </p>
-                      <p className="text-[11px] text-white/70 mt-0.5">
-                        {item.company} • {item.salary}
-                      </p>
+            {latestOpenJobs.length === 0 ? (
+              <div className="py-6 text-center text-xs text-white/60">
+                Hiện chưa có vị trí việc làm nào đang mở tuyển.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {latestOpenJobs.map((item) => (
+                  <div
+                    key={item.job_id}
+                    className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white leading-tight truncate">
+                          {cleanJobTitle(item.title)}
+                        </p>
+                        <p className="text-[11px] text-white/70 mt-0.5 truncate">
+                          {item.company_name} • {item.salary || "Lương thỏa thuận"}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-300 border border-pink-500/30">
+                        {item.job_type || "Toàn thời gian"}
+                      </span>
                     </div>
-                    <span className="rounded-lg bg-pink-500/20 px-2 py-0.5 text-[10px] font-bold text-pink-300">
-                      HOT
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-2 pt-1">
-                    <Link
-                      href="/dashboard/jobs"
-                      className="flex-1 rounded-xl bg-white py-1.5 text-center text-xs font-bold text-slate-900 transition hover:bg-slate-100"
-                    >
-                      Ứng tuyển
-                    </Link>
-                    <Link
-                      href="/dashboard/recommendations"
-                      className="flex-1 rounded-xl border border-white/20 bg-white/15 py-1.5 text-center text-xs font-semibold text-white transition hover:bg-white/25"
-                    >
-                      Chi tiết
-                    </Link>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Link
+                        href={`/dashboard/jobs/${item.job_id}`}
+                        className="flex-1 rounded-xl bg-white py-1.5 text-center text-xs font-bold text-slate-900 transition hover:bg-slate-100"
+                      >
+                        Ứng tuyển ngay
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
