@@ -64,7 +64,7 @@ export default function RecruiterDashboardPage() {
 
     async function loadDashboard() {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
 
         if (!token) {
           throw new Error("Bạn chưa đăng nhập. Vui lòng đăng nhập lại.");

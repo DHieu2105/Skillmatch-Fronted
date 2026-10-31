@@ -42,4 +42,25 @@ export const authService = {
       body: formData,
     });
   },
+
+  forgotPassword(email: string) {
+    return apiFetch<{ message: string }>("/api/v1/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword(token: string, new_password: string) {
+    return apiFetch<{ message: string }>("/api/v1/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, new_password }),
+    });
+  },
+
+  googleLogin(credential: string, role?: string) {
+    return apiFetch<TokenResponse>("/api/v1/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential, role }),
+    });
+  },
 };

@@ -21,7 +21,7 @@ export default function NotificationsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -45,7 +45,7 @@ export default function NotificationsPage() {
   }, []);
 
   const handleRead = async (notificationId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     try {
@@ -70,7 +70,7 @@ export default function NotificationsPage() {
   };
 
   const handleReadAll = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     setMarkingAll(true);

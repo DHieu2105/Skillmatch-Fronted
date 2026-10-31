@@ -46,7 +46,7 @@ export default function StudentProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -113,7 +113,7 @@ export default function StudentProfilePage() {
       return;
     }
 
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) {
       setError("Bạn cần đăng nhập để tải ảnh lên.");
       return;
@@ -143,7 +143,7 @@ export default function StudentProfilePage() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setError("Bạn cần đăng nhập để lưu hồ sơ.");

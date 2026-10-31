@@ -86,7 +86,7 @@ export default function RecruiterJobsPage() {
 
   useEffect(() => {
     let active = true;
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       queueMicrotask(() => {
@@ -126,7 +126,7 @@ export default function RecruiterJobsPage() {
   }, []);
 
   const handleStatusChange = async (jobId: number, status: JobStatus) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) {
       setError("Bạn cần đăng nhập.");
       return;
@@ -152,7 +152,7 @@ export default function RecruiterJobsPage() {
   };
 
   const handleDelete = async (jobId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) {
       setError("Bạn cần đăng nhập.");
       return;

@@ -99,7 +99,7 @@ export default function RecruiterCompanyPage() {
     let active = true;
     async function loadProfile() {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
         if (!token)
           throw new Error("Bạn cần đăng nhập để quản lý thông tin doanh nghiệp.");
 
@@ -184,7 +184,7 @@ export default function RecruiterCompanyPage() {
   };
 
   const handleSaveSection = async (section: SectionKey) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) {
       setError("Bạn cần đăng nhập để lưu thông tin.");
       return;

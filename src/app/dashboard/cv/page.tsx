@@ -26,7 +26,7 @@ export default function CVPage() {
   const [success, setSuccess] = useState("");
 
   const loadCVs = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setLoading(false);
@@ -46,7 +46,7 @@ export default function CVPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -96,7 +96,7 @@ export default function CVPage() {
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setError("Bạn cần đăng nhập để tải CV lên.");
@@ -123,7 +123,7 @@ export default function CVPage() {
   };
 
   const handleSetDefault = async (cvId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setError("Bạn cần đăng nhập để thực hiện.");
@@ -145,7 +145,7 @@ export default function CVPage() {
   };
 
   const handleDelete = async (cvId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setError("Bạn cần đăng nhập để thực hiện.");

@@ -10,7 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) {
       router.replace("/auth/login");
       return;
@@ -28,7 +28,7 @@ export default function Home() {
         }
       })
       .catch(() => {
-        localStorage.removeItem("access_token");
+        sessionStorage.removeItem("access_token");
         router.replace("/auth/login");
       })
       .finally(() => {

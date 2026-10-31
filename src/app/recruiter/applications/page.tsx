@@ -146,7 +146,7 @@ export default function RecruiterApplicationsPage() {
     let active = true;
     async function loadApplications() {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
         if (!token) throw new Error("Bạn cần đăng nhập để quản lý ứng viên.");
         const data = await applicationService.getRecruiterApplications(token);
         if (active) setApplications(data);

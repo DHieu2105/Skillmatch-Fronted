@@ -62,7 +62,7 @@ export default function RecruiterApplicationDetailPage() {
 
     async function loadApplication() {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
 
         if (!token) {
           throw new Error("You must be signed in.");
@@ -102,7 +102,7 @@ export default function RecruiterApplicationDetailPage() {
   }, [applicationId]);
 
   const handleStatusUpdate = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token || !application) return;
 

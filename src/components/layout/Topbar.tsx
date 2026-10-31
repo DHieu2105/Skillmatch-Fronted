@@ -54,7 +54,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     let active = true;
 
     const loadUnreadCount = async () => {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       if (!token) {
         if (active) setUnreadCount(0);
@@ -95,6 +95,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   }, [user?.role]);
 
   function handleLogout() {
+    sessionStorage.removeItem("access_token");
     localStorage.removeItem("access_token");
     router.replace("/auth/login");
   }

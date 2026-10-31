@@ -55,7 +55,7 @@ export default function JobDetailPage() {
   const [applySuccess, setApplySuccess] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -92,7 +92,7 @@ export default function JobDetailPage() {
   useEffect(() => {
     if (!job || !isJobAcceptingApplications(job)) return;
 
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     cvService
@@ -117,7 +117,7 @@ export default function JobDetailPage() {
   const handleApply = async () => {
     if (!job || !selectedCVId || !isJobAcceptingApplications(job)) return;
 
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     setApplying(true);

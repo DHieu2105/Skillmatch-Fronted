@@ -30,7 +30,7 @@ export default function FindJobsPage() {
   const [experienceLevel, setExperienceLevel] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -55,7 +55,7 @@ export default function FindJobsPage() {
   }, []);
 
   const handleSearch = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     setSearching(true);
@@ -80,7 +80,7 @@ export default function FindJobsPage() {
   };
 
   const handleReset = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     setTitle("");

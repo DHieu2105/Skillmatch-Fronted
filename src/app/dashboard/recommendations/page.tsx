@@ -50,7 +50,7 @@ export default function RecommendationsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -75,7 +75,7 @@ export default function RecommendationsPage() {
   }, []);
 
   const handleGenerate = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) return;
 
     setGenerating(true);

@@ -12,7 +12,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setUser(null);
@@ -44,7 +44,7 @@ export function useAuth() {
         full_name: fullName || userData.full_name,
       });
     } catch {
-      localStorage.removeItem("access_token");
+      sessionStorage.removeItem("access_token");
       setUser(null);
     } finally {
       setLoading(false);

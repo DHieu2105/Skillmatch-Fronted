@@ -23,7 +23,7 @@ export default function RecruiterCVViewerPage() {
 
     async function loadApplication() {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
 
         if (!token) throw new Error("You must be signed in.");
         if (!Number.isInteger(applicationId) || applicationId <= 0) {

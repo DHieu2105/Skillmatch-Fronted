@@ -22,7 +22,7 @@ export default function StudentCVViewerPage() {
 
     async function loadCV() {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
 
         if (!token) throw new Error("You must be signed in.");
         if (!Number.isInteger(cvId) || cvId <= 0) {

@@ -44,7 +44,7 @@ export default function SkillsPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       Promise.resolve().then(() => {
@@ -81,7 +81,7 @@ export default function SkillsPage() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setError("Bạn cần đăng nhập để quản lý kỹ năng.");
@@ -122,7 +122,7 @@ export default function SkillsPage() {
   };
 
   const handleCreateCatalogSkill = async (data: SkillCatalogCreate) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       throw new Error("Bạn cần đăng nhập để tạo kỹ năng mới.");
@@ -149,7 +149,7 @@ export default function SkillsPage() {
   };
 
   const handleDelete = async (skillId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       setError("Bạn cần đăng nhập để quản lý kỹ năng.");
