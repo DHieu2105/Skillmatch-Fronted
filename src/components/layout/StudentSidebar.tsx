@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import { springs } from "@/lib/animation";
 import {
   LayoutDashboard,
   Search,
@@ -71,13 +73,18 @@ export default function StudentSidebar({
               key={item.href}
               href={item.href}
               onClick={onNavigate}
-              className={`group relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
-                active
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-900/40 font-semibold"
-                  : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+              className={`group relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                active ? "text-white font-semibold" : "text-slate-300 hover:text-white"
               }`}
             >
-              <div className="flex items-center gap-3">
+              {active && (
+                <motion.div
+                  layoutId="student-sidebar-pill"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-violet-900/40"
+                  transition={springs.smooth}
+                />
+              )}
+              <div className="relative z-10 flex items-center gap-3">
                 <Icon
                   className={`h-4 w-4 transition-transform duration-200 group-hover:scale-110 ${
                     active ? "text-white" : "text-slate-400 group-hover:text-violet-300"
@@ -87,7 +94,7 @@ export default function StudentSidebar({
               </div>
 
               {item.badge && (
-                <span className="rounded-full bg-violet-400/20 px-2 py-0.5 text-[10px] font-bold text-violet-300 border border-violet-400/30">
+                <span className="relative z-10 rounded-full bg-violet-400/20 px-2 py-0.5 text-[10px] font-bold text-violet-300 border border-violet-400/30">
                   {item.badge}
                 </span>
               )}

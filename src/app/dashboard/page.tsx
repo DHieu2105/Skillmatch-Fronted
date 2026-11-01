@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { springs, staggerContainer, fadeInUp } from "@/lib/animation";
 import {
   Sparkles,
   Briefcase,
@@ -355,9 +357,18 @@ export default function StudentDashboardPage() {
       </section>
 
       {/* 3. Four Stat Metric Cards with Colorful Gradient Icons - 100% REAL DATA */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
         {/* Card 1: Việc làm AI */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: -4, transition: springs.snappy }}
+          className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md cursor-default"
+        >
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500">Việc làm AI gợi ý</p>
             <div className="flex items-baseline gap-1.5">
@@ -379,10 +390,14 @@ export default function StudentDashboardPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25">
             <Sparkles className="h-6 w-6" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 2: Đơn ứng tuyển */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: -4, transition: springs.snappy }}
+          className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md cursor-default"
+        >
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500">Đơn đã ứng tuyển</p>
             <div className="flex items-baseline gap-1.5">
@@ -414,10 +429,14 @@ export default function StudentDashboardPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white shadow-lg shadow-orange-500/25">
             <Briefcase className="h-6 w-6" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 3: CV của tôi */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: -4, transition: springs.snappy }}
+          className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md cursor-default"
+        >
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500">CV trực tuyến</p>
             <div className="flex items-baseline gap-1.5">
@@ -439,10 +458,14 @@ export default function StudentDashboardPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-400 to-blue-600 text-white shadow-lg shadow-sky-500/25">
             <FileText className="h-6 w-6" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 4: Kỹ năng chuẩn */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: -4, transition: springs.snappy }}
+          className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md cursor-default"
+        >
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500">Kỹ năng tích lũy</p>
             <div className="flex items-baseline gap-1.5">
@@ -464,8 +487,8 @@ export default function StudentDashboardPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-500/25">
             <Cpu className="h-6 w-6" />
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* 4. Main Two-Column Layout */}
       <div className="grid gap-7 lg:grid-cols-3">
@@ -497,13 +520,20 @@ export default function StudentDashboardPage() {
                     key={tab.key}
                     type="button"
                     onClick={() => setActiveTab(tab.key)}
-                    className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                    className={`relative rounded-lg px-3 py-1 text-xs font-bold transition-colors ${
                       activeTab === tab.key
-                        ? "bg-white text-slate-900 shadow-sm"
+                        ? "text-slate-900"
                         : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
-                    {tab.label}
+                    {activeTab === tab.key && (
+                      <motion.span
+                        layoutId="dashboard-tab-pill"
+                        className="absolute inset-0 rounded-lg bg-white shadow-sm"
+                        transition={springs.snappy}
+                      />
+                    )}
+                    <span className="relative z-10">{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -651,9 +681,10 @@ export default function StudentDashboardPage() {
                 {topRecommendations.map((rec) => {
                   const score = Math.round(rec.score);
                   return (
-                    <div
+                    <motion.div
                       key={rec.recommendation_id}
-                      className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition hover:-translate-y-1 hover:border-violet-300 hover:bg-white hover:shadow-md"
+                      whileHover={{ y: -4, transition: springs.snappy }}
+                      className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 transition-colors hover:border-violet-300 hover:bg-white hover:shadow-lg hover:shadow-violet-500/5"
                     >
                       <div>
                         <div className="flex items-start justify-between gap-2">
@@ -690,13 +721,13 @@ export default function StudentDashboardPage() {
                       <div className="mt-4 pt-3 border-t border-slate-200/60">
                         <Link
                           href={`/dashboard/jobs/${rec.job_id}`}
-                          className="flex w-full items-center justify-center gap-1 rounded-xl bg-violet-600 py-2 text-xs font-bold text-white transition hover:bg-violet-700"
+                          className="flex w-full items-center justify-center gap-1 rounded-xl bg-violet-600 py-2 text-xs font-bold text-white transition hover:bg-violet-700 active:scale-95"
                         >
                           Ứng tuyển ngay
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>

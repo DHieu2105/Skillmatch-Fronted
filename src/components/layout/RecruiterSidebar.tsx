@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import { springs } from "@/lib/animation";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -82,18 +84,23 @@ export default function RecruiterSidebar({
               key={item.href}
               href={item.href}
               onClick={onNavigate}
-              className={`group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
-                active
-                  ? "bg-white/[0.12] text-amber-300 font-semibold shadow-inner border border-amber-400/20"
-                  : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+              className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                active ? "text-amber-300 font-semibold" : "text-slate-300 hover:text-white"
               }`}
             >
+              {active && (
+                <motion.div
+                  layoutId="recruiter-sidebar-pill"
+                  className="absolute inset-0 rounded-xl bg-white/[0.12] border border-amber-400/25 shadow-inner"
+                  transition={springs.smooth}
+                />
+              )}
               <Icon
-                className={`h-4 w-4 transition-transform duration-200 group-hover:scale-110 ${
+                className={`relative z-10 h-4 w-4 transition-transform duration-200 group-hover:scale-110 ${
                   active ? "text-amber-400" : "text-slate-400 group-hover:text-amber-300"
                 }`}
               />
-              <span>{item.label}</span>
+              <span className="relative z-10">{item.label}</span>
             </Link>
           );
         })}

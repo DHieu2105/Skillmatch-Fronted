@@ -5,6 +5,8 @@ import Script from "next/script";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { springs } from "@/lib/animation";
 import { authService } from "@/services/auth.service";
 import {
   Mail,
@@ -249,7 +251,12 @@ export default function LoginPage() {
 
         {/* Right Form Panel */}
         <section className="flex flex-1 items-center justify-center p-6 sm:p-12 lg:p-16">
-          <div className="w-full max-w-[440px] rounded-3xl border border-white bg-white/95 p-8 sm:p-10 shadow-xl shadow-purple-950/5 backdrop-blur-xl">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={springs.gentle}
+            className="w-full max-w-[440px] rounded-3xl border border-white bg-white/95 p-8 sm:p-10 shadow-xl shadow-purple-950/5 backdrop-blur-xl"
+          >
             {/* Mobile brand header */}
             <div className="mb-7 flex items-center gap-2.5 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-fuchsia-500 via-purple-600 to-indigo-500 text-white shadow-md">
@@ -274,10 +281,13 @@ export default function LoginPage() {
             </div>
 
             {/* Google Sign In Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              transition={springs.snappy}
               type="button"
               onClick={handleGoogleSignInClick}
-              className="group flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-bold text-xs text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 active:scale-[0.99]"
+              className="group flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-bold text-xs text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
             >
               <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -286,7 +296,7 @@ export default function LoginPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
               <span>Đăng nhập với Google</span>
-            </button>
+            </motion.button>
 
             {/* Divider */}
             <div className="relative my-5 flex items-center justify-center">
@@ -352,17 +362,30 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50/90 p-3.5 text-xs font-bold text-rose-700 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
+              {/* Error Message with AnimatePresence */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -4 }}
+                    transition={springs.snappy}
+                    className="overflow-hidden"
+                  >
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50/90 p-3.5 text-xs font-bold text-rose-700 flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Submit Button */}
-              <button
-                className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5c1363] via-[#7d1470] to-[#b3196b] text-sm font-bold text-white shadow-lg shadow-purple-900/20 transition-all duration-200 hover:opacity-95 hover:shadow-xl hover:shadow-purple-900/30 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              <motion.button
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
+                transition={springs.snappy}
+                className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5c1363] via-[#7d1470] to-[#b3196b] text-sm font-bold text-white shadow-lg shadow-purple-900/20 hover:opacity-95 hover:shadow-xl hover:shadow-purple-900/30 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}
                 type="submit"
               >
@@ -374,7 +397,7 @@ export default function LoginPage() {
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
 
             {/* Register Link */}
@@ -387,7 +410,7 @@ export default function LoginPage() {
                 Đăng ký tài khoản mới
               </Link>
             </p>
-          </div>
+          </motion.div>
         </section>
       </main>
     </>

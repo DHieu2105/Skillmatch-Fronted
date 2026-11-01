@@ -5,6 +5,8 @@ import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { springs } from "@/lib/animation";
 
 import { authService } from "@/services/auth.service";
 import type { UserRole } from "@/types/auth";
@@ -237,7 +239,12 @@ export default function RegisterPage() {
 
         {/* Right Form Panel */}
         <section className="flex flex-1 items-center justify-center p-6 sm:p-12 lg:p-16">
-          <div className="w-full max-w-[460px] rounded-3xl border border-white bg-white/95 p-8 sm:p-10 shadow-xl shadow-purple-950/5 backdrop-blur-xl">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={springs.gentle}
+            className="w-full max-w-[460px] rounded-3xl border border-white bg-white/95 p-8 sm:p-10 shadow-xl shadow-purple-950/5 backdrop-blur-xl"
+          >
             {/* Mobile brand header */}
             <Link href="/" className="mb-7 flex w-fit items-center gap-2.5 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-fuchsia-500 via-purple-600 to-indigo-500 text-white shadow-md">
@@ -262,10 +269,13 @@ export default function RegisterPage() {
             </div>
 
             {/* Google Sign Up Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              transition={springs.snappy}
               type="button"
               onClick={handleGoogleSignUpClick}
-              className="group flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-bold text-xs text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 active:scale-[0.99]"
+              className="group flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-bold text-xs text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
             >
               <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -274,7 +284,7 @@ export default function RegisterPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
               <span>Đăng ký nhanh với Google</span>
-            </button>
+            </motion.button>
 
             {/* Divider */}
             <div className="relative my-4 flex items-center justify-center">
@@ -292,12 +302,15 @@ export default function RegisterPage() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Student Role Card */}
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={springs.snappy}
                     onClick={() => setRole("STUDENT")}
-                    className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3.5 text-center transition-all duration-200 ${
+                    className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3.5 text-center transition-colors ${
                       role === "STUDENT"
-                        ? "border-purple-600 bg-purple-50/60 shadow-md shadow-purple-600/10 scale-[1.02]"
+                        ? "border-purple-600 bg-purple-50/60 shadow-md shadow-purple-600/10"
                         : "border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white"
                     }`}
                   >
@@ -323,15 +336,18 @@ export default function RegisterPage() {
                         Tìm việc & Tạo CV
                       </span>
                     </div>
-                  </button>
+                  </motion.button>
 
                   {/* Recruiter Role Card */}
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={springs.snappy}
                     onClick={() => setRole("RECRUITER")}
-                    className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3.5 text-center transition-all duration-200 ${
+                    className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3.5 text-center transition-colors ${
                       role === "RECRUITER"
-                        ? "border-pink-600 bg-pink-50/60 shadow-md shadow-pink-600/10 scale-[1.02]"
+                        ? "border-pink-600 bg-pink-50/60 shadow-md shadow-pink-600/10"
                         : "border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white"
                     }`}
                   >
@@ -357,7 +373,7 @@ export default function RegisterPage() {
                         Đăng tin & Tuyển dụng
                       </span>
                     </div>
-                  </button>
+                  </motion.button>
                 </div>
               </div>
 
@@ -426,17 +442,30 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50/90 p-3.5 text-xs font-bold text-rose-700 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
+              {/* Error Message with AnimatePresence */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -4 }}
+                    transition={springs.snappy}
+                    className="overflow-hidden"
+                  >
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50/90 p-3.5 text-xs font-bold text-rose-700 flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Submit Button */}
-              <button
-                className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5c1363] via-[#7d1470] to-[#b3196b] text-sm font-bold text-white shadow-lg shadow-purple-900/20 transition-all duration-200 hover:opacity-95 hover:shadow-xl hover:shadow-purple-900/30 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              <motion.button
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
+                transition={springs.snappy}
+                className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5c1363] via-[#7d1470] to-[#b3196b] text-sm font-bold text-white shadow-lg shadow-purple-900/20 hover:opacity-95 hover:shadow-xl hover:shadow-purple-900/30 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}
                 type="submit"
               >
@@ -448,7 +477,7 @@ export default function RegisterPage() {
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
 
             {/* Login Link */}
@@ -461,7 +490,7 @@ export default function RegisterPage() {
                 Đăng nhập ngay
               </Link>
             </p>
-          </div>
+          </motion.div>
         </section>
       </main>
     </>

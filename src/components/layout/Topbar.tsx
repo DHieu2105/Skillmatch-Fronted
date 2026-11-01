@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { springs } from "@/lib/animation";
 import { NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notification-events";
 import { notificationService } from "@/services/notification.service";
 import {
@@ -134,33 +136,39 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         {/* Right side actions */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           {user?.role === "STUDENT" && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
+              transition={springs.snappy}
               aria-label={
                 unreadCount > 0
                   ? `${unreadCount} thông báo chưa đọc`
                   : "Thông báo"
               }
-              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition hover:bg-white/25"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition-colors hover:bg-white/25"
               onClick={() => router.push("/dashboard/notifications")}
               type="button"
               title="Thông báo"
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-[#7d1470]">
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-[#7d1470] animate-pulse">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
-            </button>
+            </motion.button>
           )}
 
           {/* User profile pill */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={springs.snappy}
             type="button"
             onClick={() =>
               router.push(isRecruiter ? "/recruiter/company" : "/dashboard/profile")
             }
-            className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/15 py-1 pl-1 pr-3 text-left backdrop-blur-md transition hover:bg-white/25 focus:outline-none"
+            className="group flex items-center gap-2.5 rounded-full border border-white/20 bg-white/15 py-1 pl-1 pr-3 text-left backdrop-blur-md transition-colors hover:bg-white/25 focus:outline-none"
             title="Xem hồ sơ cá nhân"
           >
             {user?.avatar_url ? (
@@ -189,23 +197,26 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
                 {displayName}
               </p>
             </div>
-            <ChevronDown className="h-3 w-3 text-white/70" />
-          </button>
+            <ChevronDown className="h-3 w-3 text-white/70 transition-transform group-hover:translate-y-0.5" />
+          </motion.button>
 
           {/* Logout button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            transition={springs.snappy}
             aria-label="Đăng xuất"
             title="Đăng xuất"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 transition hover:bg-rose-500 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-rose-500 hover:text-white"
             onClick={handleLogout}
             type="button"
           >
             <LogOut className="h-4 w-4" />
-          </button>
+          </motion.button>
         </div>
       </div>
 
-      {/* Navigation tabs row */}
+      {/* Navigation tabs row with animated sliding pill */}
       <div className="border-t border-white/10 bg-black/10">
         <div className="mx-auto flex items-center gap-1 overflow-x-auto px-4 py-1.5 sm:px-8 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((tab) => {
@@ -219,13 +230,18 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                  active
-                    ? "bg-white/25 text-white shadow-sm backdrop-blur-md"
-                    : "text-white/75 hover:bg-white/10 hover:text-white"
+                className={`relative shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                  active ? "text-white" : "text-white/75 hover:text-white"
                 }`}
               >
-                {tab.label}
+                {active && (
+                  <motion.span
+                    layoutId="topbar-active-pill"
+                    className="absolute inset-0 rounded-lg bg-white/25 shadow-sm backdrop-blur-md"
+                    transition={springs.smooth}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
               </Link>
             );
           })}

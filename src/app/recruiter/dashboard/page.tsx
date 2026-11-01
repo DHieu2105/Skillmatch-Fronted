@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { springs, staggerContainer, fadeInUp } from "@/lib/animation";
 import {
   Briefcase,
   Users,
@@ -246,13 +248,20 @@ export default function RecruiterDashboardPage() {
       </section>
 
       {/* Stats Cards */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div
+            <motion.div
               key={stat.label}
-              className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-slate-300"
+              variants={fadeInUp}
+              whileHover={{ y: -4, transition: springs.snappy }}
+              className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-shadow hover:shadow-md hover:border-slate-300 cursor-default"
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-500">{stat.label}</p>
@@ -268,10 +277,10 @@ export default function RecruiterDashboardPage() {
               </div>
 
               <p className="mt-1 text-xs text-slate-400">{stat.description}</p>
-            </div>
+            </motion.div>
           );
         })}
-      </section>
+      </motion.section>
 
       {/* Recent Applicants */}
       <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
